@@ -7,6 +7,10 @@
   <link rel="stylesheet"href="styles.css" />
 </head>
 <body>
+  <div id="sync-bar" class="sync-bar hidden" role="status" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <span id="sync-bar-text">Sincronizando datos con Google Sheets...</span>
+  </div>
   <header class="topbar">
     <div class="brand">
       <div class="brand-icon"id="brand-logo-wrap"aria-hidden="true">SST</div>
@@ -390,6 +394,7 @@
                 <input type="password" id="cfg-pass-confirm" minlength="4" required />
               </div>
               <button type="submit" class="btn btn-secondary btn-sm">Actualizar Clave</button>
+              <div id="pass-feedback" class="feedback hidden"></div>
             </form>
 
             <hr class="divider" />

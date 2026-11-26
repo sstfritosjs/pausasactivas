@@ -1,16 +1,69 @@
 :root {
+  /* Design Tokens: Colores */
   --bg: #f4f7fb;
   --surface: #ffffff;
-  --text: #162032;
-  --muted: #5c6b82;
-  --border: #dfe6f0;
+  --surface-subtle: #f8fafc;
+  --text: #0f172a;
+  --text-secondary: #334155;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
   --primary: #0f766e;
   --primary-hover: #0d5f59;
+  --primary-soft: #f0fdfa;
   --accent: #ea580c;
   --accent-hover: #c2410c;
   --danger: #dc2626;
+  --success: #15803d;
+  --focus-ring: 0 0 0 3px rgba(15, 118, 110, 0.28);
+
+  /* Design Tokens: Espaciado y Radios */
+  --space-xs: 0.35rem;
+  --space-sm: 0.65rem;
+  --space-md: 1rem;
+  --space-lg: 1.35rem;
+  --radius-sm: 8px;
   --radius: 14px;
-  --shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --radius-lg: 18px;
+  --shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 14px 32px rgba(15, 23, 42, 0.14);
+  --transition: 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Accesibilidad: foco visible consistente en todos los controles */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Estados de carga */
+.sync-bar {
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+.btn.is-loading {
+  opacity: 0.75;
+  pointer-events: none;
+  position: relative;
 }
 
 * {
@@ -1049,21 +1102,51 @@ select {
 
 @media (max-width: 640px) {
   .topbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.85rem;
+    gap: 0.5rem;
+  }
+
+  .brand {
+    gap: 0.55rem;
+    min-width: 0;
+  }
+
+  .brand-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    border-radius: 9px;
+    flex-shrink: 0;
+  }
+
+  .brand h1 {
+    font-size: 0.98rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .subtitle {
+    display: none;
   }
 
   .topbar-actions {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
 
   .nav-tabs {
+    order: 3;
     width: 100%;
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 0.25rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.2rem;
     -webkit-overflow-scrolling: touch;
   }
 

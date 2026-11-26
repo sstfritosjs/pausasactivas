@@ -257,6 +257,8 @@ const ROUTINES = [
 // CONFIGURACIÓN Y ALMACENAMIENTO LOCAL
 // ==========================================
 const ADMIN_PASS = "admin123";
+// Pega aquí tu URL de Google Apps Script (/exec) para que TODOS los celulares sincronicen el personal automáticamente:
+const DEFAULT_SHEETS_URL = "";
 const STORAGE_KEYS = {
   STAFF: "pausas_sst_staff_v1",
   ATTENDANCE: "pausas_sst_attendance_v1",
@@ -270,11 +272,14 @@ let attendance = loadJSON(STORAGE_KEYS.ATTENDANCE, []);
 let settings = loadJSON(STORAGE_KEYS.SETTINGS, {
   companyName: "Pausas Activas SST",
   logoDataUrl: "",
-  sheetsUrl: "",
+  sheetsUrl: DEFAULT_SHEETS_URL,
   allowSkip: false,
   qrUrl: "",
   adminPass: ADMIN_PASS
 });
+if (!settings.sheetsUrl && DEFAULT_SHEETS_URL) {
+  settings.sheetsUrl = DEFAULT_SHEETS_URL;
+}
 let currentBlockIndex = Number(localStorage.getItem(STORAGE_KEYS.BLOCK_INDEX) || 0) % ROUTINES.length;
 
 let mainRemaining = TWO_HOURS_SECONDS;
@@ -381,14 +386,69 @@ function speakSpanish(text) {
   } catch {}
 }
 
+function setSyncState(loading, text = "Sincronizando con Google Sheets...") {
+  const bar = document.getElementById("sync-bar");
+  const label = document.getElementById("sync-bar-text");
+  if (!bar) return;
+  if (label) label.textContent = text;
+  bar.classList.toggle("hidden", !loading);
+}
+
+function getSheetsUrl() {
+  return (settings.sheetsUrl || DEFAULT_SHEETS_URL || "").trim();
+}
+
+async function loadFromGoogleSheets() {
+  const url = getSheetsUrl();
+  if (!url) return;
+  setSyncState(true, "Cargando personal y registros desde Google Sheets...");
+  try {
+    const res = await fetch(`${url}?action=load`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.staff) && data.staff.length > 0) {
+        staff = data.staff;
+        saveJSON(STORAGE_KEYS.STAFF, staff);
+      }
+      if (Array.isArray(data.attendance)) {
+        attendance = data.attendance;
+        saveJSON(STORAGE_KEYS.ATTENDANCE, attendance);
+      }
+      refreshAll();
+    }
+  } catch {
+    // Mantiene los datos locales si no hay conexión
+  } finally {
+    setSyncState(false);
+  }
+}
+
 function syncToGoogleSheets(record) {
-  if (!settings.sheetsUrl) return;
-  fetch(settings.sheetsUrl, {
+  const url = getSheetsUrl();
+  if (!url) return;
+  setSyncState(true, "Guardando registro en Google Sheets...");
+  fetch(url, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(record)
-  }).catch(() => {});
+    body: JSON.stringify({ action: "addAttendance", ...record })
+  })
+    .catch(() => {})
+    .finally(() => setTimeout(() => setSyncState(false), 600));
+}
+
+function syncStaffToGoogleSheets() {
+  const url = getSheetsUrl();
+  if (!url) return;
+  setSyncState(true, "Guardando listado de personal en Google Sheets...");
+  fetch(url, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "saveStaff", staff })
+  })
+    .catch(() => {})
+    .finally(() => setTimeout(() => setSyncState(false), 700));
 }
 
 // ==========================================
@@ -438,8 +498,8 @@ document.getElementById("btn-cancel-admin").addEventListener("click", () => {
 
 document.getElementById("form-admin-login").addEventListener("submit", e => {
   e.preventDefault();
-  const val = document.getElementById("admin-pass-input").value;
-  const currentPass = settings.adminPass || ADMIN_PASS;
+  const val = document.getElementById("admin-pass-input").value.trim();
+  const currentPass = (settings.adminPass || ADMIN_PASS).trim();
   if (val === currentPass) {
     document.getElementById("admin-modal").classList.add("hidden");
     enterAdminMode();
@@ -469,8 +529,8 @@ cedulaInput.addEventListener("input", () => {
     const myToday = attendance.filter(r =>r.date === today && r.id === found.id);
     const lastTime = myToday.length > 0 ? myToday[0].time : null;
     const progressText = myToday.length > 0
-      ? `Hoy llevas <strong>${myToday.length} de 4</strong>pausas (última a las ${lastTime}).`
-      : `Hoy llevas <strong>0 de 4</strong>pausas realizadas.`;
+      ? `Hoy llevas <strong>${myToday.length} de 4</strong> pausas (última a las ${lastTime}).`
+      : `Hoy llevas <strong>0 de 4</strong> pausas realizadas.`;
     cedulaPreview.className = "cedula-preview";
     cedulaPreview.innerHTML = ` <strong>${escapeHTML(found.name)}</strong> · ${escapeHTML(found.area)}<br/><span style="font-size:0.82rem;">${progressText}</span>`;
   } else {
@@ -1038,6 +1098,7 @@ document.getElementById("form-add-staff").addEventListener("submit", e => {
     showToast("Colaborador agregado.");
   }
   saveJSON(STORAGE_KEYS.STAFF, staff);
+  syncStaffToGoogleSheets();
   e.target.reset();
   refreshAll();
 });
@@ -1070,6 +1131,7 @@ document.getElementById("csv-file-input").addEventListener("change", e => {
     });
 
     saveJSON(STORAGE_KEYS.STAFF, staff);
+    syncStaffToGoogleSheets();
     const fb = document.getElementById("upload-feedback");
     fb.textContent = `Carga completada: ${added} nuevos y ${updated} actualizados.`;
     fb.classList.remove("hidden");
@@ -1248,28 +1310,40 @@ document.getElementById("form-settings").addEventListener("submit", e => {
 
 document.getElementById("form-change-pass").addEventListener("submit", e => {
   e.preventDefault();
-  const cur = document.getElementById("cfg-pass-current").value;
-  const next = document.getElementById("cfg-pass-new").value;
-  const conf = document.getElementById("cfg-pass-confirm").value;
-  const activePass = settings.adminPass || ADMIN_PASS;
+  const cur = document.getElementById("cfg-pass-current").value.trim();
+  const next = document.getElementById("cfg-pass-new").value.trim();
+  const conf = document.getElementById("cfg-pass-confirm").value.trim();
+  const activePass = (settings.adminPass || ADMIN_PASS).trim();
+  const fb = document.getElementById("pass-feedback");
+
+  const showPassMsg = (msg, isError = false) => {
+    if (fb) {
+      fb.textContent = msg;
+      fb.classList.remove("hidden");
+      fb.style.background = isError ? "#fef2f2" : "#ecfdf5";
+      fb.style.color = isError ? "#991b1b" : "#065f46";
+      fb.style.borderColor = isError ? "#fecaca" : "#a7f3d0";
+    }
+    showToast(msg);
+  };
 
   if (cur !== activePass) {
-    showToast("La clave actual es incorrecta.");
+    showPassMsg("La clave actual es incorrecta.", true);
     return;
   }
   if (next.length < 4) {
-    showToast("La nueva clave debe tener al menos 4 caracteres.");
+    showPassMsg("La nueva clave debe tener al menos 4 caracteres.", true);
     return;
   }
   if (next !== conf) {
-    showToast("La confirmación no coincide con la nueva clave.");
+    showPassMsg("La confirmación no coincide con la nueva clave.", true);
     return;
   }
 
   settings.adminPass = next;
   saveJSON(STORAGE_KEYS.SETTINGS, settings);
   e.target.reset();
-  showToast("Clave de administrador actualizada correctamente.");
+  showPassMsg("Clave de administrador actualizada correctamente. Úsala en tu próximo ingreso.", false);
 });
 
 document.getElementById("btn-gen-qr").addEventListener("click", () => {
@@ -1379,3 +1453,4 @@ document.getElementById("btn-next-tip").addEventListener("click", () => {
 applyBranding();
 renderRoutines();
 refreshAll();
+loadFromGoogleSheets();
