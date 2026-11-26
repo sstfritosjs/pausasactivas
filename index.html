@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="icon" href="icon-192.png" />
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
   <div id="sync-bar" class="sync-bar hidden" role="status" aria-live="polite">
@@ -191,6 +191,11 @@
 
         <button id="btn-start-group" class="btn btn-accent btn-lg">▶ Iniciar pausa grupal</button>
         <button id="btn-group-skip-to-list" class="btn btn-outline btn-lg" style="margin-top:0.6rem;">Ya la hicimos · solo marcar asistencia</button>
+
+        <div id="group-last-acta" class="last-acta hidden">
+          <span id="group-last-acta-text"></span>
+          <button type="button" id="btn-print-acta" class="btn btn-primary btn-sm">Imprimir acta de asistencia</button>
+        </div>
       </div>
 
       <div id="group-checklist" class="card hidden">
@@ -210,6 +215,8 @@
             <select id="group-filter-area"><option value="">Todas las áreas</option></select>
           </div>
         </div>
+
+        <p id="group-sign-hint" class="sign-hint-row hidden">Pasa la tablet: cada persona toca su nombre y firma.</p>
 
         <div class="header-actions" style="margin-bottom:0.8rem;">
           <button id="btn-group-all" class="btn btn-outline btn-sm">Marcar todos los visibles</button>
@@ -357,6 +364,22 @@
 
       <!-- TAB 2: HISTORIAL -->
       <div id="tab-asistencia" class="tab-panel">
+        <div class="card" style="margin-bottom:1.25rem;">
+          <div class="card-header">
+            <h2>Actas de asistencia firmadas</h2>
+            <input type="date" id="acta-date" class="inline-select" />
+          </div>
+          <p class="muted" style="margin-top:-0.4rem;">Cada pausa grupal genera un acta con la firma de quienes participaron. Desde el diálogo de impresión puedes elegir <strong>Guardar como PDF</strong>.</p>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Hora</th><th>Rutina</th><th>Turno</th><th>Dirigió</th><th>Asistentes</th><th>Firmas</th><th></th></tr>
+              </thead>
+              <tbody id="acta-list-body"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="card" style="margin-bottom:1.25rem;">
           <div class="card-header">
             <h2>Informe mensual para auditoría</h2>
@@ -515,6 +538,16 @@
               <div id="shifts-editor" class="shifts-editor"></div>
 
               <div class="form-group">
+                <label for="cfg-signature-mode">Firma de asistencia</label>
+                <select id="cfg-signature-mode">
+                  <option value="ninguna">No pedir firma</option>
+                  <option value="grupal">Exigir firma en pausas grupales</option>
+                  <option value="siempre">Exigir firma siempre (grupal e individual)</option>
+                </select>
+                <small class="muted">La firma se dibuja en pantalla táctil y queda guardada como evidencia en el acta de asistencia.</small>
+              </div>
+
+              <div class="form-group">
                 <label for="cfg-min-gap">Tiempo mínimo entre pausas de un mismo colaborador</label>
                 <select id="cfg-min-gap">
                   <option value="0">Sin restricción</option>
@@ -638,6 +671,25 @@
     </div>
   </div>
 
+  <!-- MODAL: FIRMA DE ASISTENCIA -->
+  <div id="sign-modal" class="modal-overlay hidden">
+    <div class="modal-card sign-card">
+      <h2>Firma de asistencia</h2>
+      <p class="muted" id="sign-person">—</p>
+      <div class="sign-wrap">
+        <canvas id="sign-pad" class="sign-pad"></canvas>
+        <span class="sign-baseline"></span>
+      </div>
+      <p class="sign-hint">Firma con el dedo dentro del recuadro</p>
+      <div id="sign-error" class="error-text hidden">Aún no has firmado.</div>
+      <div class="modal-actions sign-actions">
+        <button type="button" id="btn-sign-clear" class="btn btn-outline">Borrar</button>
+        <button type="button" id="btn-sign-cancel" class="btn btn-outline">Cancelar</button>
+        <button type="button" id="btn-sign-accept" class="btn btn-primary">Confirmar firma</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: MOLESTIA DE UNA PERSONA EN MODO GRUPAL -->
   <div id="group-segment-modal" class="modal-overlay hidden">
     <div class="modal-card" style="text-align:center;">
@@ -730,8 +782,8 @@
   </div>
 
   <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-  <script src="illustrations.js?v=5"></script>
-  <script src="routines.js?v=5"></script>
-  <script src="app.js?v=5"></script>
+  <script src="illustrations.js?v=6"></script>
+  <script src="routines.js?v=6"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

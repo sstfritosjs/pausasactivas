@@ -15,11 +15,13 @@ var API_KEY     = 'pausas-sst-2026';   // Debe ser IDENTICA a API_KEY en app.js
 var SH_STAFF    = 'Personal';
 var SH_ATT      = 'Registros';
 var SH_CFG      = 'Config';
+var SH_SIGN     = 'Firmas';
 var MAX_RECORDS = 6000;
 var HORA_RESUMEN = 17;                 // Hora del correo de cierre de turno
 
 var HEAD_STAFF = ['Documento', 'Nombre', 'Area', 'Restriccion'];
-var HEAD_ATT   = ['Fecha', 'Hora', 'Cedula', 'Nombre', 'Area', 'Rutina', 'Bienestar', 'Segmento', 'Origen', 'RegistroID', 'Turno', 'Modo', 'Lider'];
+var HEAD_ATT   = ['Fecha', 'Hora', 'Cedula', 'Nombre', 'Area', 'Rutina', 'Bienestar', 'Segmento', 'Origen', 'RegistroID', 'Turno', 'Modo', 'Lider', 'Sesion'];
+var HEAD_SIGN  = ['RegistroID', 'Sesion', 'Fecha', 'Cedula', 'Nombre', 'Firma'];
 var HEAD_CFG   = ['Clave', 'Valor'];
 
 /* ---------------- Utilidades ---------------- */
@@ -130,7 +132,7 @@ function readAttendance_() {
         date: txt_(r[0]), time: hora_(r[1]), id: txt_(r[2]), name: txt_(r[3]),
         area: txt_(r[4]), routine: txt_(r[5]), feeling: txt_(r[6]) || 'Bien',
         segment: txt_(r[7]), origin: txt_(r[8]), rid: txt_(r[9]), shift: txt_(r[10]),
-        mode: txt_(r[11]) || 'Individual', leader: txt_(r[12])
+        mode: txt_(r[11]) || 'Individual', leader: txt_(r[12]), session: txt_(r[13])
       };
     })
     .filter(function (r) { return r.id && r.date; });
@@ -227,7 +229,7 @@ function filaDeRegistro_(rec, cfg, rid) {
     horaDe_(real),
     txt_(rec.id), txt_(rec.name), txt_(rec.area), txt_(rec.routine),
     txt_(rec.feeling) || 'Bien', txt_(rec.segment), origen, rid,
-    turnoDe_(real, cfg || {}), txt_(rec.mode) || 'Individual', txt_(rec.leader)
+    turnoDe_(real, cfg || {}), txt_(rec.mode) || 'Individual', txt_(rec.leader), txt_(rec.session)
   ];
 }
 
@@ -258,6 +260,71 @@ function addAttendanceLote_(lista, cfg) {
 function addAttendance_(rec, cfg) {
   if (!rec || !rec.id) return false;
   return addAttendanceLote_([rec], cfg) >= 0;
+}
+
+/* Las firmas viven en su propia hoja: pesan mucho y no se necesitan
+   en la sincronizacion de cada minuto, solo al imprimir el acta. */
+function saveSignatures_(lista) {
+  if (!lista || !lista.length) return 0;
+  var sh = sheet_(SH_SIGN, HEAD_SIGN);
+  var vistos = {};
+  var last = sh.getLastRow();
+  if (last > 1) {
+    var col = sh.getRange(2, 1, last - 1, 1).getValues();
+    for (var i = 0; i < col.length; i++) {
+      var v = txt_(col[i][0]);
+      if (v) vistos[v] = true;
+    }
+  }
+
+  var filas = [];
+  for (var j = 0; j < lista.length; j++) {
+    var f = lista[j];
+    var rid = txt_(f && f.rid);
+    var data = String((f && f.data) || '');
+    if (!rid || !data || vistos[rid]) continue;
+    if (data.length > 48000) continue;          // no cabe en una celda
+    vistos[rid] = true;
+    filas.push([rid, txt_(f.session), txt_(f.date), txt_(f.id), txt_(f.name), data]);
+  }
+
+  if (!filas.length) return 0;
+  var row = Math.max(sh.getLastRow(), 1) + 1;
+  var rng = sh.getRange(row, 1, filas.length, HEAD_SIGN.length);
+  rng.setNumberFormat('@');
+  rng.setValues(filas);
+  return filas.length;
+}
+
+/* Devuelve solo las firmas de una sesion o de unos RegistroID concretos */
+function getSignatures_(sesion, rids) {
+  var sh = sheet_(SH_SIGN, HEAD_SIGN);
+  var last = sh.getLastRow();
+  if (last < 2) return {};
+
+  var meta = sh.getRange(2, 1, last - 1, 2).getValues();   // RegistroID, Sesion
+  var buscar = {};
+  (rids || []).forEach(function (r) { buscar[txt_(r)] = true; });
+
+  var objetivo = [];
+  for (var i = 0; i < meta.length; i++) {
+    var rid = txt_(meta[i][0]);
+    var ses = txt_(meta[i][1]);
+    if ((sesion && ses === txt_(sesion)) || buscar[rid]) objetivo.push({ indice: i, rid: rid });
+  }
+  if (!objetivo.length) return {};
+  if (objetivo.length > 300) objetivo = objetivo.slice(0, 300);
+
+  // Una sola lectura del bloque que las contiene (las de una sesion van juntas)
+  var desde = objetivo[0].indice;
+  var hasta = objetivo[objetivo.length - 1].indice;
+  var bloque = sh.getRange(desde + 2, 6, hasta - desde + 1, 1).getValues();
+
+  var out = {};
+  for (var j = 0; j < objetivo.length; j++) {
+    out[objetivo[j].rid] = txt_(bloque[objetivo[j].indice - desde][0]);
+  }
+  return out;
 }
 
 function saveConfig_(cfg) {
@@ -303,6 +370,10 @@ function handle_(params, body) {
     return json_({ ok: true, action: 'ping', staff: readStaff_().length, serverTime: new Date().toISOString() });
   }
 
+  if (action === 'getSignatures') {
+    return json_({ ok: true, signatures: getSignatures_(data.session || params.session, data.rids || []) });
+  }
+
   if (action === 'load') {
     return json_({
       ok: true,
@@ -332,6 +403,9 @@ function handle_(params, body) {
     if (action === 'addAttendanceBatch') {
       var guardados = addAttendanceLote_(data.records || [], cfg);
       return json_({ ok: true, action: action, saved: guardados });
+    }
+    if (action === 'saveSignatures') {
+      return json_({ ok: true, action: action, saved: saveSignatures_(data.signatures || []) });
     }
     if (action === 'saveStaff') {
       var n = saveStaff_(data.staff, data.removeIds, data.mode);

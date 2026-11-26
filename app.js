@@ -23,6 +23,8 @@ const STORAGE_KEYS = {
   ATTENDANCE: "pausas_sst_attendance_v1",
   SETTINGS: "pausas_sst_settings_v1",
   PENDING: "pausas_sst_pending_v1",
+  SIGNATURES: "pausas_sst_signatures_v1",
+  PENDING_SIGN: "pausas_sst_pending_sign_v1",
   STAFF_DIRTY: "pausas_sst_staff_dirty_v1"
 };
 const AUTO_SYNC_MS = 60000;
@@ -30,6 +32,8 @@ const AUTO_SYNC_MS = 60000;
 let staff = loadJSON(STORAGE_KEYS.STAFF, []);
 let attendance = loadJSON(STORAGE_KEYS.ATTENDANCE, []);
 let pending = loadJSON(STORAGE_KEYS.PENDING, []);
+let signatures = loadJSON(STORAGE_KEYS.SIGNATURES, {});      // RegistroID -> imagen de la firma
+let pendingSign = loadJSON(STORAGE_KEYS.PENDING_SIGN, []);   // firmas por subir
 let staffDirty = localStorage.getItem(STORAGE_KEYS.STAFF_DIRTY) === "1";
 
 let settings = Object.assign({
@@ -44,7 +48,8 @@ let settings = Object.assign({
   sstEmail: "",
   shiftMode: "dos",
   shifts: null,
-  leaderPassHash: ""
+  leaderPassHash: "",
+  signatureMode: "grupal"
 }, loadJSON(STORAGE_KEYS.SETTINGS, {}));
 
 // Migración desde versiones con 4 franjas sueltas y un solo turno
@@ -445,6 +450,7 @@ function applyRemoteConfig(cfg) {
   if (cfg.logoDataUrl) settings.logoDataUrl = cfg.logoDataUrl;
   if (cfg.adminPassHash) settings.adminPassHash = cfg.adminPassHash;
   if (typeof cfg.leaderPassHash !== "undefined") settings.leaderPassHash = cfg.leaderPassHash;
+  if (cfg.signatureMode) settings.signatureMode = cfg.signatureMode;
   if (typeof cfg.minGapMinutes !== "undefined") settings.minGapMinutes = Number(cfg.minGapMinutes) || 0;
   if (cfg.shiftMode === "uno" || cfg.shiftMode === "dos") settings.shiftMode = cfg.shiftMode;
   if (cfg.shiftsJson) {
@@ -525,6 +531,7 @@ async function pushConfig() {
     qrUrl: settings.qrUrl || "",
     adminPassHash: settings.adminPassHash || "",
     leaderPassHash: settings.leaderPassHash || "",
+    signatureMode: settings.signatureMode || "grupal",
     minGapMinutes: Number(settings.minGapMinutes) || 0,
     shiftMode: settings.shiftMode || "dos",
     shiftsJson: JSON.stringify(allShifts()),
@@ -550,6 +557,7 @@ async function syncNow(silent = false) {
   if (!silent) setSyncState(true, "Sincronizando base de datos...");
   try {
     await flushPending();
+    await flushSignatures();
     if (staffDirty) await pushStaff();
 
     const data = await apiGet({ action: "load" });
@@ -862,8 +870,26 @@ async function guardarRegistro(record) {
   renderSyncInfo();
 }
 
+// Pide la firma si está configurada para pausas individuales
+function cerrarRegistroIndividual(registro) {
+  if (!exigeFirmaIndividual()) {
+    guardarRegistro(registro);
+    return;
+  }
+  document.getElementById("feeling-modal").classList.add("hidden");
+  abrirFirma(
+    { name: registro.name, id: registro.id },
+    data => { encolarFirma(registro, data); guardarRegistro(registro); },
+    () => {
+      // Si no firma, la pausa igual queda registrada pero marcada sin firma
+      showToast("Pausa registrada SIN firma. Quedará señalada en el acta.");
+      guardarRegistro(registro);
+    }
+  );
+}
+
 document.querySelectorAll(".btn-feeling").forEach(btn => {
-  btn.addEventListener("click", async () => {
+  btn.addEventListener("click", () => {
     if (!pendingCompletedRecord) return;
     const feeling = btn.dataset.feeling || "Bien";
     pendingCompletedRecord.feeling = feeling;
@@ -875,15 +901,15 @@ document.querySelectorAll(".btn-feeling").forEach(btn => {
       speakSpanish("¿En qué parte del cuerpo sientes la molestia?");
       return;
     }
-    await guardarRegistro(pendingCompletedRecord);
+    cerrarRegistroIndividual(pendingCompletedRecord);
   });
 });
 
 document.querySelectorAll(".btn-segment").forEach(btn => {
-  btn.addEventListener("click", async () => {
+  btn.addEventListener("click", () => {
     if (!pendingCompletedRecord) return;
     pendingCompletedRecord.segment = btn.dataset.segment || "";
-    await guardarRegistro(pendingCompletedRecord);
+    cerrarRegistroIndividual(pendingCompletedRecord);
   });
 });
 
@@ -1082,6 +1108,10 @@ function abrirImpresion(contenidoHTML, titulo) {
     .pie{font-size:10.5px;color:#64748b;margin-top:26px;}
     .firmas{display:flex;gap:40px;margin-top:46px;font-size:11px;text-align:center;}
     .firmas div{flex:1;border-top:1px solid #0f172a;padding-top:5px;}
+    table.acta td{vertical-align:middle;height:48px;}
+    .celda-firma{text-align:center;padding:2px 6px;}
+    img.firma{max-height:40px;max-width:200px;display:block;margin:0 auto;}
+    .sin-firma{color:#b91c1c;font-size:10px;font-weight:bold;letter-spacing:.3px;}
     @media print{ body{padding:0;} }
   </style></head><body>${logo}${contenidoHTML}
   <script>window.onload=()=>window.print();<\/script></body></html>`);
@@ -1781,6 +1811,7 @@ function applyBranding() {
   document.getElementById("cfg-sheets-url").value = settings.sheetsUrl || "";
   document.getElementById("cfg-allow-skip").checked = Boolean(settings.allowSkip);
   document.getElementById("cfg-min-gap").value = String(Number(settings.minGapMinutes) || 0);
+  document.getElementById("cfg-signature-mode").value = settings.signatureMode || "grupal";
   document.getElementById("cfg-sst-email").value = settings.sstEmail || "";
   document.getElementById("cfg-shift-mode").value = settings.shiftMode || "dos";
   renderShiftsEditor();
@@ -1929,6 +1960,7 @@ document.getElementById("form-settings").addEventListener("submit", async e => {
   settings.sheetsUrl = document.getElementById("cfg-sheets-url").value.trim();
   settings.allowSkip = document.getElementById("cfg-allow-skip").checked;
   settings.minGapMinutes = Number(document.getElementById("cfg-min-gap").value) || 0;
+  settings.signatureMode = document.getElementById("cfg-signature-mode").value || "grupal";
   settings.sstEmail = document.getElementById("cfg-sst-email").value.trim();
 
   const modo = document.getElementById("cfg-shift-mode").value === "dos" ? "dos" : "uno";
@@ -2098,6 +2130,184 @@ document.getElementById("btn-next-tip").addEventListener("click", () => {
 });
 
 // ==========================================================
+// FIRMA DE ASISTENCIA
+// Se dibuja en pantalla táctil, se recorta y se comprime.
+// Vive en una hoja aparte para no engordar la sincronización diaria.
+// ==========================================================
+const FIRMAS_MAX_LOCALES = 600;
+const FIRMA_MAX_CHARS = 20000;
+
+function exigeFirmaGrupal()     { return (settings.signatureMode || "grupal") !== "ninguna"; }
+function exigeFirmaIndividual() { return (settings.signatureMode || "grupal") === "siempre"; }
+
+function guardarFirmaLocal(rid, data) {
+  signatures[rid] = data;
+  const claves = Object.keys(signatures);
+  if (claves.length > FIRMAS_MAX_LOCALES) {
+    claves.slice(0, claves.length - FIRMAS_MAX_LOCALES).forEach(k => delete signatures[k]);
+  }
+  saveJSON(STORAGE_KEYS.SIGNATURES, signatures);
+}
+
+function encolarFirma(reg, data) {
+  if (!data) return;
+  guardarFirmaLocal(reg.rid, data);
+  pendingSign.push({
+    rid: reg.rid, session: reg.session || "", date: reg.date,
+    id: reg.id, name: reg.name, data
+  });
+  saveJSON(STORAGE_KEYS.PENDING_SIGN, pendingSign);
+}
+
+async function flushSignatures() {
+  if (!pendingSign.length) return;
+  let guardia = 0;
+  while (pendingSign.length && guardia++ < 40) {
+    const lote = pendingSign.slice(0, 8);
+    let resp = null;
+    try {
+      resp = await apiPost({ action: "saveSignatures", signatures: lote });
+    } catch { return; }
+    if (!resp || !resp.ok) return;
+    const ids = new Set(lote.map(x => x.rid));
+    pendingSign = pendingSign.filter(x => !ids.has(x.rid));
+    saveJSON(STORAGE_KEYS.PENDING_SIGN, pendingSign);
+  }
+}
+
+// ---------- Pad de firma ----------
+let signPad = null, signCtx = null, signDibujando = false, signHayTinta = false;
+let signAlConfirmar = null, signAlCancelar = null;
+
+function prepararPad() {
+  signPad = document.getElementById("sign-pad");
+  const caja = signPad.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  signPad.width = Math.max(1, Math.round(caja.width * dpr));
+  signPad.height = Math.max(1, Math.round(caja.height * dpr));
+  signCtx = signPad.getContext("2d");
+  signCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  signCtx.fillStyle = "#ffffff";
+  signCtx.fillRect(0, 0, caja.width, caja.height);
+  signCtx.lineWidth = 2.6;
+  signCtx.lineCap = "round";
+  signCtx.lineJoin = "round";
+  signCtx.strokeStyle = "#0f172a";
+  signHayTinta = false;
+}
+
+function puntoPad(e) {
+  const r = signPad.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function abrirFirma(persona, alConfirmar, alCancelar) {
+  signAlConfirmar = alConfirmar || null;
+  signAlCancelar = alCancelar || null;
+  document.getElementById("sign-person").textContent =
+    `${persona.name} · C.C. ${persona.id}`;
+  document.getElementById("sign-error").classList.add("hidden");
+  document.getElementById("sign-modal").classList.remove("hidden");
+  requestAnimationFrame(prepararPad);
+}
+
+function cerrarFirma() {
+  document.getElementById("sign-modal").classList.add("hidden");
+  signAlConfirmar = null;
+  signAlCancelar = null;
+}
+
+// Recorta el espacio en blanco y reduce la imagen para que pese poco
+function firmaRecortada() {
+  if (!signHayTinta) return "";
+  const w = signPad.width, h = signPad.height;
+  const datos = signCtx.getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (datos[i] < 200 || datos[i + 1] < 200 || datos[i + 2] < 200) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX < 0) return "";
+
+  const margen = 10;
+  minX = Math.max(0, minX - margen); minY = Math.max(0, minY - margen);
+  maxX = Math.min(w - 1, maxX + margen); maxY = Math.min(h - 1, maxY + margen);
+  const cw = maxX - minX + 1, ch = maxY - minY + 1;
+
+  const escala = Math.min(110 / ch, 420 / cw, 2);
+  const out = document.createElement("canvas");
+  out.width = Math.max(1, Math.round(cw * escala));
+  out.height = Math.max(1, Math.round(ch * escala));
+  const octx = out.getContext("2d");
+  octx.fillStyle = "#ffffff";
+  octx.fillRect(0, 0, out.width, out.height);
+  octx.drawImage(signPad, minX, minY, cw, ch, 0, 0, out.width, out.height);
+
+  let url = out.toDataURL("image/png");
+  if (url.length > FIRMA_MAX_CHARS) url = out.toDataURL("image/jpeg", 0.7);
+  return url;
+}
+
+(function instalarPad() {
+  const pad = document.getElementById("sign-pad");
+
+  const inicio = e => {
+    if (!signCtx) return;
+    signDibujando = true;
+    const p = puntoPad(e);
+    signCtx.beginPath();
+    signCtx.moveTo(p.x, p.y);
+    try { pad.setPointerCapture(e.pointerId); } catch {}
+    e.preventDefault();
+  };
+  const mover = e => {
+    if (!signDibujando || !signCtx) return;
+    const p = puntoPad(e);
+    signCtx.lineTo(p.x, p.y);
+    signCtx.stroke();
+    signHayTinta = true;
+    e.preventDefault();
+  };
+  const fin = () => { signDibujando = false; };
+
+  pad.addEventListener("pointerdown", inicio);
+  pad.addEventListener("pointermove", mover);
+  pad.addEventListener("pointerup", fin);
+  pad.addEventListener("pointerleave", fin);
+  pad.addEventListener("pointercancel", fin);
+
+  document.getElementById("btn-sign-clear").addEventListener("click", () => {
+    prepararPad();
+    document.getElementById("sign-error").classList.add("hidden");
+  });
+
+  document.getElementById("btn-sign-cancel").addEventListener("click", () => {
+    const cb = signAlCancelar;
+    cerrarFirma();
+    if (cb) cb();
+  });
+
+  document.getElementById("btn-sign-accept").addEventListener("click", () => {
+    const data = firmaRecortada();
+    if (!data) {
+      document.getElementById("sign-error").classList.remove("hidden");
+      return;
+    }
+    const cb = signAlConfirmar;
+    cerrarFirma();
+    if (cb) cb(data);
+  });
+})();
+
+// ==========================================================
 // MODO GRUPAL
 // Un líder dirige la pausa para todo el grupo y al terminar
 // marca quiénes participaron. Pensado para una tablet o TV en planta.
@@ -2107,6 +2317,8 @@ let groupRoutineIndex = 0;
 let groupLeaderName = "";
 const groupSelected = new Set();
 const groupSegments = new Map();
+const groupSignatures = new Map();   // cédula -> imagen de la firma
+let ultimaSesionGrupal = "";
 let groupSegmentTarget = null;
 
 async function checkGroupPass(valor) {
@@ -2143,6 +2355,7 @@ function enterGroupMode() {
   groupMode = true;
   groupSelected.clear();
   groupSegments.clear();
+  groupSignatures.clear();
   fillGroupSelectors();
   document.getElementById("kiosk-view").classList.add("hidden");
   document.getElementById("worker-view").classList.add("hidden");
@@ -2160,6 +2373,7 @@ function exitGroupMode() {
   activeParticipant = null;
   groupSelected.clear();
   groupSegments.clear();
+  groupSignatures.clear();
   document.getElementById("guided-player").classList.add("hidden");
   document.getElementById("group-view").classList.add("hidden");
   document.getElementById("kiosk-view").classList.remove("hidden");
@@ -2235,6 +2449,11 @@ function abrirListaGrupal() {
   document.getElementById("group-routine-label").textContent =
     `${ROUTINES[groupRoutineIndex].name} · ${hora}` + (groupLeaderName ? ` · dirige ${groupLeaderName}` : "");
 
+  // Si cada quien debe firmar, marcar en bloque no tiene sentido
+  const conFirma = exigeFirmaGrupal();
+  document.getElementById("btn-group-all").classList.toggle("hidden", conFirma);
+  document.getElementById("group-sign-hint").classList.toggle("hidden", !conFirma);
+
   renderGroupList();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -2271,6 +2490,7 @@ function renderGroupList() {
     const espera = cooldownMinutes(p.id);
     const marcado = groupSelected.has(id);
     const seg = groupSegments.get(id);
+    const firma = groupSignatures.get(id);
     return `<div class="group-row ${marcado ? "is-on" : ""} ${espera ? "is-locked" : ""}" data-id="${escapeHTML(id)}" role="button" tabindex="0" aria-pressed="${marcado}">
       <span class="group-check">${marcado ? "✓" : ""}</span>
       <span class="group-info">
@@ -2279,6 +2499,7 @@ function renderGroupList() {
         ${espera ? `<span class="group-note">Ya registró una pausa hace poco · faltan ${espera} min</span>` : ""}
         ${p.medical ? `<span class="group-note group-note-med">Con recomendación médica</span>` : ""}
         ${seg ? `<span class="group-note group-note-pain">Molestia: ${escapeHTML(seg)}</span>` : ""}
+        ${firma ? `<img class="group-sign-thumb" src="${firma}" alt="Firma de ${escapeHTML(p.name)}" />` : ""}
       </span>
       <button type="button" class="group-flag ${seg ? "is-on" : ""}" data-flag="${escapeHTML(id)}" title="Reportar molestia">!</button>
     </div>`;
@@ -2308,9 +2529,23 @@ document.getElementById("group-list").addEventListener("click", e => {
   if (groupSelected.has(id)) {
     groupSelected.delete(id);
     groupSegments.delete(id);
-  } else {
-    groupSelected.add(id);
+    groupSignatures.delete(id);
+    renderGroupList();
+    return;
   }
+
+  if (exigeFirmaGrupal()) {
+    const persona = findPerson(id);
+    if (!persona) return;
+    abrirFirma(persona, data => {
+      groupSignatures.set(id, data);
+      groupSelected.add(id);
+      renderGroupList();
+    });
+    return;
+  }
+
+  groupSelected.add(id);
   renderGroupList();
 });
 
@@ -2371,15 +2606,20 @@ document.getElementById("btn-group-save").addEventListener("click", async () => 
   const ahora = new Date();
   const rutina = ROUTINES[groupRoutineIndex].name;
   const turno = shiftNameForTime(ahora);
+  const sesion = "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const nuevos = [];
+  const firmasNuevas = [];
   let omitidos = 0;
+  let sinFirma = 0;
 
   ids.forEach(id => {
     const p = findPerson(id);
     if (!p) return;
     if (cooldownMinutes(p.id) > 0) { omitidos++; return; }   // no infla el cumplimiento
     const seg = groupSegments.get(String(p.id)) || "";
-    nuevos.push({
+    const firma = groupSignatures.get(String(p.id)) || "";
+    if (!firma) sinFirma++;
+    const reg = {
       rid: makeRid(),
       createdAtMs: Date.now(),
       date: jornadaISO(ahora),
@@ -2390,8 +2630,11 @@ document.getElementById("btn-group-save").addEventListener("click", async () => 
       feeling: seg ? "Con molestia física" : "Bien",
       segment: seg,
       mode: "Grupal",
-      leader: groupLeaderName || ""
-    });
+      leader: groupLeaderName || "",
+      session: sesion
+    };
+    nuevos.push(reg);
+    if (firma) firmasNuevas.push({ reg, firma });
   });
 
   if (!nuevos.length) {
@@ -2405,20 +2648,31 @@ document.getElementById("btn-group-save").addEventListener("click", async () => 
   nuevos.forEach(r => pending.push(r));
   saveJSON(STORAGE_KEYS.PENDING, pending);
 
+  firmasNuevas.forEach(f => encolarFirma(f.reg, f.firma));
+
+  ultimaSesionGrupal = sesion;
+  const panel = document.getElementById("group-last-acta");
+  document.getElementById("group-last-acta-text").textContent =
+    `Última pausa: ${nuevos.length} asistente(s), ${nuevos.length - sinFirma} con firma.`;
+  panel.classList.remove("hidden");
+
   groupSelected.clear();
   groupSegments.clear();
+  groupSignatures.clear();
   document.getElementById("group-checklist").classList.add("hidden");
   document.getElementById("group-setup").classList.remove("hidden");
   refreshAll();
   fillGroupSelectors();
 
-  setSyncState(true, `Guardando ${nuevos.length} registros en la base compartida...`);
+  setSyncState(true, `Guardando ${nuevos.length} registros y sus firmas...`);
   await flushPending();
+  await flushSignatures();
   setSyncState(false);
   renderSyncInfo();
 
   showToast(`${nuevos.length} asistencia(s) registradas` +
-    (omitidos ? ` · ${omitidos} omitida(s) por tener una pausa reciente` : "") + ".");
+    (omitidos ? ` · ${omitidos} omitida(s) por pausa reciente` : "") +
+    (sinFirma ? ` · ${sinFirma} sin firma` : "") + ".");
 });
 
 // Clave de líder (permite dirigir pausas grupales sin acceso al panel)
@@ -2453,12 +2707,149 @@ document.getElementById("btn-clear-leader-pass").addEventListener("click", async
 });
 
 // ==========================================================
+// ACTAS DE ASISTENCIA FIRMADAS
+// ==========================================================
+async function obtenerFirmas(registros, sesion) {
+  const faltan = registros.filter(r => !signatures[r.rid]).map(r => r.rid);
+  if (!faltan.length) return;
+  try {
+    const resp = await apiGet(sesion
+      ? { action: "getSignatures", session: sesion }
+      : { action: "getSignatures", payload: JSON.stringify({ action: "getSignatures", rids: faltan.slice(0, 120) }) });
+    if (resp && resp.ok && resp.signatures) {
+      Object.keys(resp.signatures).forEach(rid => {
+        if (resp.signatures[rid]) guardarFirmaLocal(rid, resp.signatures[rid]);
+      });
+    }
+  } catch {}
+}
+
+function registrosDeActa(sesion, fecha) {
+  return sesion
+    ? attendance.filter(r => r.session === sesion)
+    : attendance.filter(r => r.date === fecha && (r.mode || "Individual") === "Individual");
+}
+
+async function imprimirActa(sesion, fecha) {
+  const recs = registrosDeActa(sesion, fecha).slice().sort((a, b) =>
+    String(a.name).localeCompare(String(b.name)));
+  if (!recs.length) { showToast("No hay asistentes en esa acta."); return; }
+
+  setSyncState(true, "Recuperando las firmas...");
+  await obtenerFirmas(recs, sesion);
+  setSyncState(false);
+
+  const base = recs[0];
+  const firmados = recs.filter(r => signatures[r.rid]).length;
+  const horas = [...new Set(recs.map(r => r.time))].sort();
+  const horaTexto = horas.length > 1 ? `${horas[0]} a ${horas[horas.length - 1]}` : horas[0];
+  const areas = [...new Set(recs.map(r => r.area))].filter(Boolean).join(", ");
+
+  const filas = recs.map((r, i) => {
+    const f = signatures[r.rid];
+    return `<tr>
+      <td>${i + 1}</td>
+      <td>${escapeHTML(r.name)}</td>
+      <td>${escapeHTML(r.id)}</td>
+      <td>${escapeHTML(r.area)}</td>
+      <td class="celda-firma">${f
+        ? `<img class="firma" src="${f}" alt="Firma de ${escapeHTML(r.name)}" />`
+        : `<span class="sin-firma">Sin firma</span>`}</td>
+    </tr>`;
+  }).join("");
+
+  abrirImpresion(`
+    <h1>${escapeHTML(settings.companyName || "Pausas Activas SST")}</h1>
+    <h2>Acta de asistencia a pausa activa</h2>
+    <table class="datos">
+      <tr><td><b>Fecha de la jornada</b></td><td>${escapeHTML(base.date)}</td>
+          <td><b>Hora</b></td><td>${escapeHTML(horaTexto || "-")}</td></tr>
+      <tr><td><b>Rutina realizada</b></td><td>${escapeHTML(base.routine)}</td>
+          <td><b>Turno</b></td><td>${escapeHTML(base.shift || "-")}</td></tr>
+      <tr><td><b>Modalidad</b></td><td>${escapeHTML(sesion ? "Grupal dirigida" : "Individual")}</td>
+          <td><b>Dirigió</b></td><td>${escapeHTML(base.leader || "-")}</td></tr>
+      <tr><td><b>Áreas</b></td><td colspan="3">${escapeHTML(areas || "-")}</td></tr>
+      <tr><td><b>Asistentes</b></td><td>${recs.length}</td>
+          <td><b>Firmas registradas</b></td><td>${firmados} de ${recs.length}</td></tr>
+    </table>
+
+    <h3>Relación de asistentes</h3>
+    <table class="grid acta">
+      <thead><tr><th style="width:28px">#</th><th>Nombre</th><th style="width:92px">Cédula</th><th style="width:110px">Área</th><th style="width:210px">Firma</th></tr></thead>
+      <tbody>${filas}</tbody>
+    </table>
+
+    <p class="pie">Los asistentes relacionados firmaron digitalmente en el dispositivo al finalizar la pausa activa.
+    Documento generado el ${new Date().toLocaleString("es-CO")} por el programa de pausas activas del SG-SST.</p>
+    <div class="firmas"><div>${escapeHTML(base.leader || "Líder que dirigió la pausa")}</div><div>Responsable SG-SST</div></div>
+  `, `Acta de asistencia ${base.date}`);
+}
+
+function renderActas() {
+  const tbody = document.getElementById("acta-list-body");
+  if (!tbody) return;
+  const campo = document.getElementById("acta-date");
+  if (!campo.value) campo.value = jornadaISO();
+  const fecha = campo.value;
+
+  const delDia = attendance.filter(r => r.date === fecha);
+  const sesiones = new Map();
+
+  delDia.filter(r => r.session).forEach(r => {
+    if (!sesiones.has(r.session)) {
+      sesiones.set(r.session, { ses: r.session, time: r.time, routine: r.routine, shift: r.shift || "-", leader: r.leader || "-", n: 0, firmados: 0 });
+    }
+    const it = sesiones.get(r.session);
+    it.n++;
+    if (signatures[r.rid]) it.firmados++;
+    if (r.time < it.time) it.time = r.time;
+  });
+
+  const filas = [...sesiones.values()].sort((a, b) => b.time.localeCompare(a.time));
+
+  const individuales = delDia.filter(r => (r.mode || "Individual") === "Individual");
+  if (individuales.length) {
+    filas.push({
+      ses: "", time: "—", routine: "Pausas individuales del día", shift: "—", leader: "—",
+      n: individuales.length,
+      firmados: individuales.filter(r => signatures[r.rid]).length
+    });
+  }
+
+  tbody.innerHTML = filas.length === 0
+    ? `<tr><td colspan="7" class="muted">No hay pausas registradas en esa fecha.</td></tr>`
+    : filas.map(f => `<tr>
+        <td><strong>${escapeHTML(f.time)}</strong></td>
+        <td>${escapeHTML(f.routine)}</td>
+        <td>${escapeHTML(f.shift)}</td>
+        <td>${escapeHTML(f.leader)}</td>
+        <td><strong>${f.n}</strong></td>
+        <td>${f.firmados === f.n
+            ? `<span class="badge badge-ok">${f.firmados} de ${f.n}</span>`
+            : `<span class="badge badge-alert">${f.firmados} de ${f.n}</span>`}</td>
+        <td><button class="btn btn-outline btn-sm" data-acta="${escapeHTML(f.ses)}" data-fecha="${escapeHTML(fecha)}">Imprimir acta</button></td>
+      </tr>`).join("");
+
+  tbody.querySelectorAll("[data-acta]").forEach(btn => {
+    btn.addEventListener("click", () => imprimirActa(btn.dataset.acta, btn.dataset.fecha));
+  });
+}
+
+document.getElementById("acta-date").addEventListener("change", renderActas);
+
+document.getElementById("btn-print-acta").addEventListener("click", () => {
+  if (!ultimaSesionGrupal) { showToast("Todavía no has guardado una pausa grupal."); return; }
+  imprimirActa(ultimaSesionGrupal, jornadaISO());
+});
+
+// ==========================================================
 // INICIALIZACIÓN
 // ==========================================================
 function refreshAll() {
   renderStaff();
   renderCompliance();
   renderAttendanceHistory();
+  renderActas();
   renderSchedule();
   renderSyncInfo();
 }

@@ -1,6 +1,6 @@
-# Pausas Activas SST · v5
+# Pausas Activas SST · v6
 
-App web para GitHub Pages con **base de datos compartida en Google Sheets**, **modo grupal dirigido por un líder**, **dos turnos de 12 horas**, historial propio para cada trabajador y vigilancia de molestias osteomusculares. Funciona **sin señal** y se instala en el celular como aplicación.
+App web para GitHub Pages con **base de datos compartida en Google Sheets**, **modo grupal con firma de cada asistente**, **dos turnos de 12 horas**, historial propio para cada trabajador y vigilancia de molestias osteomusculares. Funciona **sin señal** y se instala en el celular como aplicación.
 
 ---
 
@@ -12,6 +12,38 @@ Sube la carpeta `img/` completa (11 archivos .jpg) a la raíz del repositorio, a
 `https://sstfritosjs.github.io/pausasactivas/img/manos.jpg` — debe mostrar la foto, no un error 404.
 
 ---
+
+---
+
+---
+
+## Firma de asistencia (evidencia para auditoría)
+
+Cada persona **firma con el dedo** en la pantalla y su firma queda guardada junto al registro.
+
+**Cómo se usa en planta:** el líder dirige la pausa, al terminar aparece la lista y **pasa la tablet**. Cada quien toca su nombre, firma en el recuadro y confirma. Solo queda marcado después de firmar: tocar el nombre ya no basta.
+
+En **Administrador → Configuración → Firma de asistencia** eliges:
+
+| Opción | Cuándo pide firma |
+|---|---|
+| No pedir firma | Nunca (comportamiento anterior) |
+| **Exigir firma en pausas grupales** | Solo en modo grupal · **por defecto** |
+| Exigir firma siempre | También cuando alguien hace su pausa individual |
+
+### El acta
+Al guardar, el botón **Imprimir acta de asistencia** genera el documento con: empresa y logo, fecha de jornada, hora, rutina, turno, áreas, quién dirigió, total de asistentes, cuántos firmaron, y la **tabla con nombre, cédula, área y la imagen de la firma** de cada uno, más las líneas de firma del líder y del responsable SG-SST. Desde el diálogo de impresión: *Guardar como PDF*.
+
+Las actas anteriores se reimprimen en **Administrador → Historial → Actas de asistencia firmadas**, eligiendo la fecha. La columna de firmas muestra `3 de 3` en verde cuando todos firmaron y en naranja cuando falta alguno.
+
+### Detalles que importan
+- Las firmas se guardan en una **hoja aparte (`Firmas`)** y **no viajan en la sincronización de cada minuto**: la app sigue igual de liviana y las firmas solo se descargan al imprimir un acta.
+- Cada firma se **recorta y comprime** automáticamente (queda en unos 5–12 KB), así cabe en una celda de Google Sheets.
+- Si no hay señal, las firmas quedan en cola y se suben solas al reconectar, igual que los registros.
+- Si alguien **cancela** la firma en la pausa individual, la pausa igual queda registrada pero el acta la marca **"Sin firma"** en rojo. No se pierde el dato y la falta queda visible.
+- Con firma activada se **oculta "Marcar todos los visibles"**: marcar en bloque haría inútil la firma.
+
+> **Valor legal:** es una firma digitalizada (imagen del trazo), equivalente a la firma de un listado en papel escaneado. Sirve como evidencia del SG-SST igual que una planilla firmada, pero **no** es firma digital certificada con validez probatoria reforzada. Si tu auditor exige eso, se necesitaría un certificado digital.
 
 ---
 
@@ -103,13 +135,14 @@ A partir de ahí recibes cada día cerca de las 5:00 p. m. un correo con el % de
 ### 4. Comprueba
 **Administrador → Configuración y QR → Probar conexión.** Debe decir *"Conexión correcta…"*.
 
-El script agrega las columnas **Turno**, **Modo** y **Lider** al final de `Registros`, así que **tus registros actuales no se desalinean** ni se pierden. Administra tres hojas:
+El script agrega las columnas **Turno**, **Modo**, **Lider** y **Sesion** al final de `Registros`, y crea la hoja `Firmas`, así que **tus registros actuales no se desalinean** ni se pierden. Administra tres hojas:
 
 | Hoja | Columnas |
 |---|---|
 | `Personal` | Documento · Nombre · Area · **Restriccion** |
-| `Registros` | Fecha · Hora · Cedula · Nombre · Area · Rutina · Bienestar · Segmento · Origen · RegistroID · Turno · **Modo** · **Lider** |
-| `Config` | Parámetros compartidos (empresa, logo, meta, turnos, clave cifrada, correo SST) |
+| `Registros` | Fecha · Hora · Cedula · Nombre · Area · Rutina · Bienestar · Segmento · Origen · RegistroID · Turno · Modo · Lider · **Sesion** |
+| `Config` | Parámetros compartidos (empresa, logo, meta, turnos, claves cifradas, correo SST) |
+| `Firmas` | RegistroID · Sesion · Fecha · Cedula · Nombre · **Firma** (imagen) |
 
 ---
 
@@ -125,7 +158,7 @@ img/   (11 fotos · OBLIGATORIA)      README.md
 
 **Settings → Pages → Deploy from a branch → `main` / `root`.**
 
-> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v5`.
+> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v6`.
 
 ---
 

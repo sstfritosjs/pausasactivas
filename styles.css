@@ -1851,3 +1851,91 @@ select {
   .group-actions { flex-direction: column-reverse; }
   .group-actions .btn { width: 100%; }
 }
+
+/* ==========================================
+   v6 · FIRMA DE ASISTENCIA Y ACTAS
+   ========================================== */
+.sign-card { max-width: 560px; }
+
+.sign-wrap {
+  position: relative;
+  margin: 0.8rem 0 0.3rem;
+  border: 2px dashed var(--border-strong);
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.sign-pad {
+  display: block;
+  width: 100%;
+  height: 210px;
+  touch-action: none;          /* que firmar no desplace la página */
+  cursor: crosshair;
+  background: #ffffff;
+}
+
+.sign-baseline {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 42px;
+  height: 1px;
+  background: var(--border-strong);
+  pointer-events: none;
+}
+
+.sign-hint {
+  margin: 0 0 0.3rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.sign-actions { flex-wrap: wrap; }
+.sign-actions .btn { flex: 1; min-width: 96px; }
+
+.sign-hint-row {
+  margin: 0 0 0.7rem;
+  padding: 0.55rem 0.8rem;
+  background: var(--primary-soft);
+  border: 1px solid #99f6e4;
+  border-radius: 10px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.group-sign-thumb {
+  height: 26px;
+  max-width: 130px;
+  object-fit: contain;
+  object-position: left center;
+  margin-top: 0.15rem;
+  display: block;
+  background: #ffffff;
+  border-radius: 4px;
+}
+
+.last-acta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--primary-soft);
+  border: 1px solid #99f6e4;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f766e;
+}
+
+@media (max-width: 640px) {
+  .sign-pad { height: 180px; }
+  .sign-baseline { bottom: 36px; }
+  .last-acta { flex-direction: column; align-items: stretch; }
+  .last-acta .btn { width: 100%; }
+}
