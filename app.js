@@ -258,7 +258,7 @@ const ROUTINES = [
 // ==========================================
 const ADMIN_PASS = "admin123";
 // Pega aquí tu URL de Google Apps Script (/exec) para que TODOS los celulares sincronicen el personal automáticamente:
-const DEFAULT_SHEETS_URL = "";
+const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyI-cy6u02mW0hcJLxtEJLtEOptv6OoYoq_2uyneZ6bGC1naGwQJ7B42SGFa2yBwV4v/exec";
 const STORAGE_KEYS = {
   STAFF: "pausas_sst_staff_v1",
   ATTENDANCE: "pausas_sst_attendance_v1",
