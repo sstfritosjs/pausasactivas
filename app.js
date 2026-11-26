@@ -1,290 +1,47 @@
-﻿// ==========================================
-// DATOS DE RUTINAS (4 BLOQUES CADA 2 HORAS · MÍNIMO 5 MIN)
-// Enfoque: Personal de pie y esfuerzo físico
-// ==========================================
-const ROUTINES = [
-  {
-    id: "bloque-1",
-    name: "Bloque 1: Descarga Lumbar y Piernas",
-    schedule: "Cada 2h · Turno 1 (6 ejercicios · 5 min)",
-    focus: "Alivia la presión en espalda baja y activa el retorno venoso por permanecer de pie.",
-    exercises: [
-      {
-        name: "Elevación de talones (bombeo venoso)",
-        zone: "Pantorrillas y tobillos",
-        moving: "Músculos gemelos, sóleo, tendón de Aquiles y articulación de los tobillos.",
-        prevents: "Várices, insuficiencia venosa, hinchazón de pies, calambres y fascitis plantar.",
-        duration: 50,
-        svgKey: "talones",
-        desc: "De pie, sube lentamente en puntas de pies sosteniendo 2 segundos y baja controlado. Repite de forma fluida."
-      },
-      {
-        name: "Extensión lumbar con manos en cintura",
-        zone: "Zona lumbar",
-        moving: "Columna lumbar, músculos paravertebrales y abdomen anterior.",
-        prevents: "Lumbalgia, hernias discales por compresión y contracturas en la espalda baja.",
-        duration: 50,
-        svgKey: "lumbar",
-        desc: "Coloca las manos en la espalda baja, pies al ancho de hombros e inclina suavemente el tronco hacia atrás mirando al frente."
-      },
-      {
-        name: "Sentadilla parcial controlada (sin peso)",
-        zone: "Glúteos, muslos y zona lumbar",
-        moving: "Glúteos, cuádriceps, rodillas y estabilizadores lumbares.",
-        prevents: "Fatiga lumbar por estar de pie, debilidad de glúteos y sobrecarga articular.",
-        duration: 50,
-        svgKey: "sentadilla",
-        desc: "Pies al ancho de hombros, baja ligeramente llevando la cadera atrás con espalda recta y brazos al frente, luego sube suave."
-      },
-      {
-        name: "Estiramiento de cuádriceps con apoyo",
-        zone: "Muslos y rodillas",
-        moving: "Cuádriceps (parte frontal del muslo), flexores de cadera y rodillas.",
-        prevents: "Tendinitis rotuliana, sobrecarga de rodillas y fatiga muscular en muslos.",
-        duration: 50,
-        svgKey: "cuadriceps",
-        desc: "Apoya una mano en una superficie firme, lleva el talón al glúteo (25s pierna derecha y 25s pierna izquierda)."
-      },
-      {
-        name: "Marcha suave elevando rodillas",
-        zone: "Cadera y circulación",
-        moving: "Flexores de cadera, rodillas, tobillos y circulación de miembros inferiores.",
-        prevents: "Rigidez de cadera, entumecimiento de piernas y fatiga circulatoria por bipedestación prolongada.",
-        duration: 50,
-        svgKey: "marcha",
-        desc: "Eleva alternadamente las rodillas a altura cómoda sin impacto, acompañando con respiración profunda."
-      },
-      {
-        name: "Respiración diafragmática profunda",
-        zone: "Recuperación general",
-        moving: "Diafragma, caja torácica y sistema nervioso.",
-        prevents: "Fatiga física acumulada y tensión muscular general.",
-        duration: 50,
-        svgKey: "respiracion",
-        desc: "Inhala profundo en 4 segundos elevando brazos y exhala lento en 6 segundos bajándolos."
-      }
-    ]
-  },
-  {
-    id: "bloque-2",
-    name: "Bloque 2: Hombros, Espalda Alta y Cuello",
-    schedule: "Cada 2h · Turno 2 (6 ejercicios · 5 min)",
-    focus: "Libera tensión acumulada por levantamiento de peso, empuje y tracción.",
-    exercises: [
-      {
-        name: "Círculos amplios de hombros hacia atrás",
-        zone: "Hombros y trapecio",
-        moving: "Articulación del hombro, manguito rotador, trapecio superior y escápulas.",
-        prevents: "Tendinitis del manguito rotador, bursitis de hombro y tensión en trapecios.",
-        duration: 50,
-        svgKey: "hombros",
-        desc: "Rota ambos hombros hacia atrás con movimientos lentos y amplios, abriendo el pecho al inhalar."
-      },
-      {
-        name: "Estiramiento lateral de cuello",
-        zone: "Cervicales y trapecio",
-        moving: "Columna cervical, esternocleidomastoideo y fibras superiores del trapecio.",
-        prevents: "Cervicalgia, tortícolis, cefaleas tensionales y pinzamientos cervicales.",
-        duration: 50,
-        svgKey: "cuello",
-        desc: "Inclina la oreja hacia el hombro manteniendo el hombro contrario abajo (25s cada lado, sin forzar)."
-      },
-      {
-        name: "Rotación suave de torso (columna torácica)",
-        zone: "Espalda media y cintura",
-        moving: "Columna torácica, oblicuos y musculatura paravertebral.",
-        prevents: "Rigidez dorsal y lesiones por giros repetitivos al mover o apilar cargas.",
-        duration: 50,
-        svgKey: "rotacion",
-        desc: "Cruza los brazos sobre el pecho, mantén la cadera fija al frente y gira suavemente el torso de un lado a otro."
-      },
-      {
-        name: "Apertura pectoral (manos entrelazadas atrás)",
-        zone: "Pecho y espalda alta",
-        moving: "Músculos pectorales, cara anterior del hombro y caja torácica.",
-        prevents: "Hombros caídos (cifosis postural), sobrecarga dorsal y compresión de hombros.",
-        duration: 50,
-        svgKey: "pectoral",
-        desc: "Entrelaza las manos detrás de la espalda, junta los omóplatos y abre el pecho respirando profundo."
-      },
-      {
-        name: "Estiramiento dorsal (abrazo al frente)",
-        zone: "Espalda media y omóplatos",
-        moving: "Romboides, dorsal ancho y musculatura entre los omóplatos.",
-        prevents: "Dorsalgia, espasmos entre escápulas y fatiga por levantar o empujar cargas.",
-        duration: 50,
-        svgKey: "dorsal",
-        desc: "Estira los brazos al frente entrelazando dedos, redondea suavemente la espalda alta y empuja hacia adelante."
-      },
-      {
-        name: "Inclinación lateral de tronco",
-        zone: "Costados y espalda",
-        moving: "Oblicuos, dorsal ancho y cuadrado lumbar.",
-        prevents: "Sobrecarga lateral de espalda por manejo de cargas asimétricas.",
-        duration: 50,
-        svgKey: "lateral",
-        desc: "Eleva un brazo sobre la cabeza e inclina el tronco suavemente hacia el lado contrario (25s por lado)."
-      }
-    ]
-  },
-  {
-    id: "bloque-3",
-    name: "Bloque 3: Caderas, Rodillas y Tobillos",
-    schedule: "Cada 2h · Turno 3 (6 ejercicios · 5 min)",
-    focus: "Reduce la rigidez articular de miembros inferiores tras varias horas de pie.",
-    exercises: [
-      {
-        name: "Balanceo controlado de cadera",
-        zone: "Cadera y zona lumbar",
-        moving: "Articulación coxofemoral (cadera), pelvis y parte baja de la espalda.",
-        prevents: "Rigidez pélvica, ciática por tensión muscular y bloqueo lumbar.",
-        duration: 50,
-        svgKey: "cadera",
-        desc: "Con rodillas ligeramente flexionadas, realiza círculos suaves con la cadera (25s a cada lado)."
-      },
-      {
-        name: "Sentadilla parcial controlada (sin peso)",
-        zone: "Glúteos y rodillas",
-        moving: "Glúteos, cuádriceps y articulación de rodillas.",
-        prevents: "Sobrecarga lumbar y fatiga por bipedestación prolongada.",
-        duration: 50,
-        svgKey: "sentadilla",
-        desc: "Flexiona suavemente las rodillas manteniendo la espalda recta y los talones apoyados en el piso."
-      },
-      {
-        name: "Estiramiento de isquiotibiales (talón al frente)",
-        zone: "Parte posterior de piernas",
-        moving: "Isquiotibiales (parte trasera del muslo) y zona posterior de la rodilla.",
-        prevents: "Desgarros posteriores de muslo, tirón lumbar y acortamiento muscular.",
-        duration: 50,
-        svgKey: "isquios",
-        desc: "Adelanta un pie apoyando el talón, flexiona ligeramente la otra rodilla e inclina el tronco con espalda recta (25s por lado)."
-      },
-      {
-        name: "Estiramiento de gemelos (paso largo)",
-        zone: "Pantorrillas y tendón de Aquiles",
-        moving: "Gemelos, sóleo, tendón de Aquiles y fascia plantar.",
-        prevents: "Tendinitis aquiliana, fascitis plantar, espolón y calambres nocturnos.",
-        duration: 50,
-        svgKey: "gemelos",
-        desc: "Da un paso atrás manteniendo el talón trasero pegado al piso y flexiona la rodilla delantera (25s por lado)."
-      },
-      {
-        name: "Rotación de tobillos",
-        zone: "Tobillos y pies",
-        moving: "Articulación del tobillo, ligamentos laterales y músculos del pie.",
-        prevents: "Esguinces de tobillo, rigidez articular y fatiga en la planta del pie.",
-        duration: 50,
-        svgKey: "tobillos",
-        desc: "Apoya la punta del pie en el suelo y haz círculos amplios con el tobillo (25s pie derecho y 25s pie izquierdo)."
-      },
-      {
-        name: "Elevación de talones (bombeo venoso)",
-        zone: "Circulación de piernas",
-        moving: "Gemelos, sóleo y retorno venoso de miembros inferiores.",
-        prevents: "Hinchazón de piernas, várices y sensación de pesadez.",
-        duration: 50,
-        svgKey: "talones",
-        desc: "Sube y baja en puntas de pies de forma controlada para reactivar la circulación."
-      }
-    ]
-  },
-  {
-    id: "bloque-4",
-    name: "Bloque 4: Manos, Muñecas y Recuperación",
-    schedule: "Cada 2h · Turno 4 (6 ejercicios · 5 min)",
-    focus: "Descansa antebrazos y manos tras agarre constante y regula la respiración.",
-    exercises: [
-      {
-        name: "Estiramiento de flexores y extensores de muñeca",
-        zone: "Muñecas y antebrazos",
-        moving: "Muñecas, tendones flexores/extensores y músculos del antebrazo.",
-        prevents: "Síndrome del túnel carpiano, tendinitis de muñeca y epicondilitis (codo de tenista).",
-        duration: 50,
-        svgKey: "muneca",
-        desc: "Brazo extendido al frente, lleva suavemente los dedos hacia atrás y luego hacia abajo (25s por brazo)."
-      },
-      {
-        name: "Pronosupinación de antebrazos",
-        zone: "Antebrazos y codos",
-        moving: "Músculos pronadores, supinadores, codos y muñecas.",
-        prevents: "Epicondilitis (codo de tenista), epitrocleítis y sobrecarga por uso de herramientas o agarre.",
-        duration: 50,
-        svgKey: "pronosupinacion",
-        desc: "Con los codos pegados al costado en 90 grados, gira las palmas hacia arriba y hacia abajo de forma lenta y controlada."
-      },
-      {
-        name: "Abrir y cerrar manos con extensión de dedos",
-        zone: "Manos y dedos",
-        moving: "Articulaciones de los dedos, palma y tendones de agarre.",
-        prevents: "Dedo en gatillo, tenosinovitis de De Quervain y entumecimiento en manos.",
-        duration: 50,
-        svgKey: "manos",
-        desc: "Abre los dedos lo máximo posible durante 3 segundos y cierra en puño suave. Repite de forma continua."
-      },
-      {
-        name: "Rotación suave de torso (columna torácica)",
-        zone: "Espalda y cintura",
-        moving: "Columna torácica, zona dorsal y oblicuos.",
-        prevents: "Rigidez de espalda al cierre de la jornada y contracturas dorsales.",
-        duration: 50,
-        svgKey: "rotacion",
-        desc: "Con brazos cruzados al pecho, gira suavemente el tronco hacia derecha e izquierda sin mover la cadera."
-      },
-      {
-        name: "Inclinación lateral de tronco",
-        zone: "Costados y espalda",
-        moving: "Oblicuos, dorsal ancho, cuadrado lumbar y costillas.",
-        prevents: "Sobrecarga lateral de espalda, escoliosis funcional y fatiga por cargas asimétricas.",
-        duration: 50,
-        svgKey: "lateral",
-        desc: "Eleva un brazo sobre la cabeza e inclina el tronco suavemente hacia el lado contrario (25s por lado)."
-      },
-      {
-        name: "Respiración diafragmática profunda",
-        zone: "Recuperación general",
-        moving: "Diafragma, caja torácica, hombros y sistema nervioso.",
-        prevents: "Fatiga física acumulada, estrés laboral, hiperventilación y tensión muscular general.",
-        duration: 50,
-        svgKey: "respiracion",
-        desc: "Inhala profundo en 4 segundos elevando brazos, sostén 2 segundos y exhala lento en 6 segundos bajando brazos."
-      }
-    ]
-  }
-];
+// ==========================================================
+// PAUSAS ACTIVAS SST · v3
+// Base compartida en Google Sheets + funcionamiento sin señal
+// Las rutinas están en routines.js (constante ROUTINES)
+// ==========================================================
 
-// ==========================================
-// CONFIGURACIÓN Y ALMACENAMIENTO LOCAL
-// ==========================================
 const ADMIN_PASS = "admin123";
-// Pega aquí tu URL de Google Apps Script (/exec) para que TODOS los celulares sincronicen el personal automáticamente:
+
+// URL del Apps Script publicado (/exec). Es la MISMA para todos los dispositivos.
 const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyI-cy6u02mW0hcJLxtEJLtEOptv6OoYoq_2uyneZ6bGC1naGwQJ7B42SGFa2yBwV4v/exec";
+
+// Debe ser IDÉNTICA a la variable API_KEY del archivo apps-script.gs
+const API_KEY = "pausas-sst-2026";
+
+const DEFAULT_SLOTS = ["06:00", "09:00", "12:00", "15:00"];
+
 const STORAGE_KEYS = {
   STAFF: "pausas_sst_staff_v1",
   ATTENDANCE: "pausas_sst_attendance_v1",
-  BLOCK_INDEX: "pausas_sst_block_idx_v1",
-  SETTINGS: "pausas_sst_settings_v1"
+  SETTINGS: "pausas_sst_settings_v1",
+  PENDING: "pausas_sst_pending_v1",
+  STAFF_DIRTY: "pausas_sst_staff_dirty_v1"
 };
-const TWO_HOURS_SECONDS = 2 * 60 * 60;
+const AUTO_SYNC_MS = 60000;
 
 let staff = loadJSON(STORAGE_KEYS.STAFF, []);
 let attendance = loadJSON(STORAGE_KEYS.ATTENDANCE, []);
-let settings = loadJSON(STORAGE_KEYS.SETTINGS, {
+let pending = loadJSON(STORAGE_KEYS.PENDING, []);
+let staffDirty = localStorage.getItem(STORAGE_KEYS.STAFF_DIRTY) === "1";
+
+let settings = Object.assign({
   companyName: "Pausas Activas SST",
   logoDataUrl: "",
   sheetsUrl: DEFAULT_SHEETS_URL,
   allowSkip: false,
   qrUrl: "",
   dailyGoal: 3,
-  adminPass: ADMIN_PASS
-});
-if (!settings.sheetsUrl && DEFAULT_SHEETS_URL) {
-  settings.sheetsUrl = DEFAULT_SHEETS_URL;
-}
-let currentBlockIndex = Number(localStorage.getItem(STORAGE_KEYS.BLOCK_INDEX) || 0) % ROUTINES.length;
-
-let mainRemaining = TWO_HOURS_SECONDS;
-let mainInterval = null;
+  adminPassHash: "",
+  minGapMinutes: 60,
+  shiftStartHour: 0,
+  slots: DEFAULT_SLOTS.slice(),
+  sstEmail: ""
+}, loadJSON(STORAGE_KEYS.SETTINGS, {}));
+if (!settings.sheetsUrl) settings.sheetsUrl = DEFAULT_SHEETS_URL;
 
 let activeRoutine = null;
 let activeParticipant = null;
@@ -292,50 +49,72 @@ let currentExIndex = 0;
 let exRemaining = 0;
 let exInterval = null;
 let exPaused = false;
+let pendingCompletedRecord = null;
+let workerInView = null;
+let lastSyncAt = null;
+let syncing = false;
 
-// ==========================================
-// UTILIDADES Y SONIDO
-// ==========================================
+// El hash de administrador solo vive mientras la pestaña está abierta.
+function getAdminHash() { try { return sessionStorage.getItem("pausas_sst_admin_hash") || ""; } catch { return ""; } }
+function setAdminHash(h) { try { sessionStorage.setItem("pausas_sst_admin_hash", h || ""); } catch {} }
+
+// ==========================================================
+// UTILIDADES
+// ==========================================================
 function loadJSON(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
+  } catch { return fallback; }
 }
 
 function saveJSON(key, data) {
-  localStorage.setItem(key, JSON.stringify(data));
+  try { localStorage.setItem(key, JSON.stringify(data)); }
+  catch (err) { console.warn("No se pudo guardar en el dispositivo:", err); }
 }
 
+function pad2(n) { return String(n).padStart(2, "0"); }
+
 function formatHMS(totalSec) {
-  const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
-  const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
-  const s = String(totalSec % 60).padStart(2, "0");
-  return `${h}:${m}:${s}`;
+  totalSec = Math.max(0, Math.floor(totalSec));
+  return `${pad2(Math.floor(totalSec / 3600))}:${pad2(Math.floor((totalSec % 3600) / 60))}:${pad2(totalSec % 60)}`;
 }
 
 function formatMS(totalSec) {
-  const m = String(Math.floor(totalSec / 60)).padStart(2, "0");
-  const s = String(totalSec % 60).padStart(2, "0");
-  return `${m}:${s}`;
+  totalSec = Math.max(0, Math.floor(totalSec));
+  return `${pad2(Math.floor(totalSec / 60))}:${pad2(totalSec % 60)}`;
 }
 
-function todayISO() {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+function isoOf(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+
+// Fecha de JORNADA: con turno nocturno, lo ocurrido antes de la hora de
+// inicio pertenece a la jornada del día anterior.
+function jornadaISO(d) {
+  const base = d || new Date();
+  const h = Number(settings.shiftStartHour) || 0;
+  const x = new Date(base.getTime());
+  if (h > 0 && x.getHours() < h) x.setDate(x.getDate() - 1);
+  return isoOf(x);
 }
 
 function escapeHTML(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return String(str === null || str === undefined ? "" : str)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function makeRid() {
+  return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+async function sha256Hex(text) {
+  try {
+    if (window.crypto && window.crypto.subtle && window.isSecureContext) {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+  } catch {}
+  return "plain:" + text;
 }
 
 function showToast(msg) {
@@ -343,7 +122,7 @@ function showToast(msg) {
   toast.textContent = msg;
   toast.classList.remove("hidden");
   clearTimeout(toast._t);
-  toast._t = setTimeout(() =>toast.classList.add("hidden"), 3400);
+  toast._t = setTimeout(() => toast.classList.add("hidden"), 4000);
 }
 
 function playBeep(freq = 880, duration = 0.25, delay = 0) {
@@ -358,34 +137,117 @@ function playBeep(freq = 880, duration = 0.25, delay = 0) {
     osc.frequency.value = freq;
     gain.gain.setValueAtTime(0.18, start);
     gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(start);
-    osc.stop(start + duration);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(start); osc.stop(start + duration);
   } catch {}
 }
 
-function playStartChime() {
-  playBeep(523.25, 0.16, 0);
-  playBeep(783.99, 0.24, 0.15);
-}
-
-function playEndChime() {
-  playBeep(880, 0.18, 0);
-  playBeep(1046.5, 0.35, 0.18);
-}
+function playStartChime() { playBeep(523.25, 0.16, 0); playBeep(783.99, 0.24, 0.15); }
+function playEndChime()   { playBeep(880, 0.18, 0); playBeep(1046.5, 0.35, 0.18); }
 
 function speakSpanish(text) {
   const chk = document.getElementById("chk-voice");
-  if (!chk || !chk.checked || !("speechSynthesis"in window)) return;
+  if (!chk || !chk.checked || !("speechSynthesis" in window)) return;
   try {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "es-ES";
-    u.rate = 0.98;
+    u.lang = "es-ES"; u.rate = 0.98;
     window.speechSynthesis.speak(u);
   } catch {}
 }
+
+// ==========================================================
+// FRANJAS HORARIAS: la rutina depende de la HORA, no de un contador
+// ==========================================================
+function getSlots() {
+  const s = Array.isArray(settings.slots) && settings.slots.length === ROUTINES.length
+    ? settings.slots
+    : DEFAULT_SLOTS;
+  return s.slice(0, ROUTINES.length);
+}
+
+function minutesOf(hhmm) {
+  const parts = String(hhmm || "00:00").split(":");
+  return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
+}
+
+function blockIndexForNow(d) {
+  const now = d || new Date();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const slots = getSlots();
+  let idx = -1;
+  slots.forEach((s, i) => { if (mins >= minutesOf(s)) idx = i; });
+  return idx < 0 ? slots.length - 1 : idx;   // antes del primer horario: bloque de madrugada
+}
+
+function nextSlotInfo(d) {
+  const now = d || new Date();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const secs = now.getSeconds();
+  const slots = getSlots();
+  for (let i = 0; i < slots.length; i++) {
+    if (minutesOf(slots[i]) > mins) {
+      return { index: i, at: slots[i], seconds: (minutesOf(slots[i]) - mins) * 60 - secs, tomorrow: false };
+    }
+  }
+  return { index: 0, at: slots[0], seconds: ((24 * 60 - mins) + minutesOf(slots[0])) * 60 - secs, tomorrow: true };
+}
+
+function renderSchedule() {
+  const list = document.getElementById("schedule-list");
+  if (!list) return;
+  const slots = getSlots();
+  const activo = blockIndexForNow();
+  const next = nextSlotInfo();
+
+  list.innerHTML = slots.map((hora, i) => `
+    <div class="schedule-slot ${i === activo ? "is-now" : ""} ${i === next.index && !next.tomorrow ? "is-next" : ""}">
+      <span class="slot-time">${escapeHTML(hora)}</span>
+      <span class="slot-name">${escapeHTML(ROUTINES[i].name.replace(/^Bloque \d+:\s*/, ""))}</span>
+      <span class="slot-tag">${i === activo ? "Ahora" : ""}</span>
+    </div>
+  `).join("");
+
+  document.getElementById("kiosk-block-badge").textContent = `Bloque ${activo + 1} de ${ROUTINES.length}`;
+  document.getElementById("next-routine-name").textContent = ROUTINES[activo].name;
+  document.getElementById("countdown-display").textContent = formatHMS(next.seconds);
+
+  const badge = document.getElementById("timer-status-badge");
+  badge.textContent = next.tomorrow ? "Fuera de horario" : `Próxima ${next.at}`;
+  badge.className = `badge ${next.tomorrow ? "badge-idle" : "badge-active"}`;
+}
+
+setInterval(renderSchedule, 1000);
+
+// ==========================================================
+// CONTROL ANTIFRAUDE: intervalo mínimo entre pausas
+// ==========================================================
+function recDateTime(r) {
+  const [y, m, d] = String(r.date || "").split("-").map(Number);
+  const [hh, mm] = String(r.time || "00:00").split(":").map(Number);
+  return new Date(y || 1970, (m || 1) - 1, d || 1, hh || 0, mm || 0);
+}
+
+function recordsFor(id) {
+  return attendance
+    .filter(r => String(r.id) === String(id))
+    .sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
+}
+
+// Devuelve los minutos que faltan para poder hacer la siguiente pausa (0 = puede)
+function cooldownMinutes(id) {
+  const gap = Number(settings.minGapMinutes) || 0;
+  if (!gap) return 0;
+  const recs = recordsFor(id);
+  if (!recs.length) return 0;
+  const diff = recDateTime(recs[0]).getTime() + gap * 60000 - Date.now();
+  return diff > 0 ? Math.ceil(diff / 60000) : 0;
+}
+
+// ==========================================================
+// SINCRONIZACIÓN CON GOOGLE SHEETS
+// ==========================================================
+function getSheetsUrl() { return (settings.sheetsUrl || DEFAULT_SHEETS_URL || "").trim(); }
 
 function setSyncState(loading, text = "Sincronizando con Google Sheets...") {
   const bar = document.getElementById("sync-bar");
@@ -395,240 +257,306 @@ function setSyncState(loading, text = "Sincronizando con Google Sheets...") {
   bar.classList.toggle("hidden", !loading);
 }
 
-function getSheetsUrl() {
-  return (settings.sheetsUrl || DEFAULT_SHEETS_URL || "").trim();
+function renderSyncInfo(message, state) {
+  const txt = message || (lastSyncAt
+    ? `Base sincronizada · ${staff.length} colaboradores · ${lastSyncAt}`
+    : "Sin sincronizar todavía");
+  const extra = pending.length ? ` · ${pending.length} registro(s) por enviar` : "";
+  const dirty = staffDirty ? " · personal pendiente de subir" : "";
+  document.querySelectorAll(".sync-info").forEach(el => {
+    el.textContent = txt + extra + dirty;
+    el.dataset.state = state || (pending.length || staffDirty ? "warn" : "ok");
+  });
 }
 
-async function loadFromGoogleSheets() {
+async function apiGet(params) {
   const url = getSheetsUrl();
-  if (!url) return;
-  setSyncState(true, "Cargando personal y registros desde Google Sheets...");
+  if (!url) throw new Error("sin-url");
+  const qs = new URLSearchParams(Object.assign({ key: API_KEY }, params)).toString();
+  const res = await fetch(`${url}?${qs}`, { method: "GET", redirect: "follow" });
+  if (!res.ok) throw new Error("http-" + res.status);
+  return await res.json();
+}
+
+async function apiPost(payload) {
+  const url = getSheetsUrl();
+  if (!url) throw new Error("sin-url");
+  const body = JSON.stringify(Object.assign({ key: API_KEY, adminHash: getAdminHash() }, payload));
   try {
-    const res = await fetch(`${url}?action=load`);
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data.staff) && data.staff.length > 0) {
-        staff = data.staff;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body, redirect: "follow"
+    });
+    if (!res.ok) throw new Error("http-" + res.status);
+    return await res.json();
+  } catch (err) {
+    // Respaldo: algunas redes corporativas bloquean el POST
+    if (body.length < 6000) return await apiGet({ action: payload.action, payload: body });
+    throw err;
+  }
+}
+
+function mergeAttendance(remoteList) {
+  const seen = new Set();
+  const out = [];
+  [...(remoteList || []), ...pending].forEach(r => {
+    if (!r || !r.id || !r.date) return;
+    const key = r.rid || `${r.date}|${r.time}|${r.id}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(r);
+  });
+  out.sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
+  return out;
+}
+
+function applyRemoteConfig(cfg) {
+  if (!cfg || typeof cfg !== "object") return;
+  if (cfg.companyName) settings.companyName = cfg.companyName;
+  if (cfg.dailyGoal) settings.dailyGoal = Number(cfg.dailyGoal) || 3;
+  if (typeof cfg.allowSkip !== "undefined") settings.allowSkip = Boolean(cfg.allowSkip);
+  if (cfg.qrUrl) settings.qrUrl = cfg.qrUrl;
+  if (cfg.logoDataUrl) settings.logoDataUrl = cfg.logoDataUrl;
+  if (cfg.adminPassHash) settings.adminPassHash = cfg.adminPassHash;
+  if (typeof cfg.minGapMinutes !== "undefined") settings.minGapMinutes = Number(cfg.minGapMinutes) || 0;
+  if (typeof cfg.shiftStartHour !== "undefined") settings.shiftStartHour = Number(cfg.shiftStartHour) || 0;
+  if (Array.isArray(cfg.slots) && cfg.slots.length === ROUTINES.length) settings.slots = cfg.slots;
+  if (cfg.sstEmail) settings.sstEmail = cfg.sstEmail;
+  saveJSON(STORAGE_KEYS.SETTINGS, settings);
+}
+
+async function flushPending() {
+  if (!pending.length) return;
+  for (const rec of [...pending]) {
+    try {
+      const envio = Object.assign({}, rec);
+      // Delta de reloj propio: el servidor calcula el momento real aunque
+      // el celular tenga la fecha mal configurada.
+      envio.queuedMs = rec.createdAtMs ? Math.max(0, Date.now() - rec.createdAtMs) : 0;
+      const r = await apiPost({ action: "addAttendance", record: envio });
+      if (r && r.ok) {
+        pending = pending.filter(p => p.rid !== rec.rid);
+        saveJSON(STORAGE_KEYS.PENDING, pending);
+      } else break;
+    } catch { break; }
+  }
+}
+
+async function pushStaff(removeIds) {
+  try {
+    const r = await apiPost({ action: "saveStaff", staff, removeIds: removeIds || [], mode: "merge" });
+    if (r && r.ok) {
+      staffDirty = false;
+      localStorage.setItem(STORAGE_KEYS.STAFF_DIRTY, "0");
+      if (Array.isArray(r.staff)) {
+        staff = r.staff;
         saveJSON(STORAGE_KEYS.STAFF, staff);
       }
-      if (Array.isArray(data.attendance)) {
-        attendance = data.attendance;
-        saveJSON(STORAGE_KEYS.ATTENDANCE, attendance);
-      }
-      refreshAll();
+      return true;
     }
+    if (r && r.error === "requiere-clave-administrador") {
+      showToast("Para guardar personal debes ingresar como administrador en este dispositivo.");
+    }
+  } catch {}
+  staffDirty = true;
+  localStorage.setItem(STORAGE_KEYS.STAFF_DIRTY, "1");
+  return false;
+}
+
+async function pushConfig() {
+  const cfg = {
+    companyName: settings.companyName || "",
+    dailyGoal: settings.dailyGoal || 3,
+    allowSkip: Boolean(settings.allowSkip),
+    qrUrl: settings.qrUrl || "",
+    adminPassHash: settings.adminPassHash || "",
+    minGapMinutes: Number(settings.minGapMinutes) || 0,
+    shiftStartHour: Number(settings.shiftStartHour) || 0,
+    slots: getSlots(),
+    sstEmail: settings.sstEmail || ""
+  };
+  if (settings.logoDataUrl && settings.logoDataUrl.length < 40000) cfg.logoDataUrl = settings.logoDataUrl;
+  try {
+    const r = await apiPost({ action: "saveConfig", config: cfg });
+    return Boolean(r && r.ok);
+  } catch { return false; }
+}
+
+async function syncNow(silent = false) {
+  if (syncing) return false;
+  if (!getSheetsUrl()) {
+    if (!silent) showToast("Falta configurar la URL de Google Sheets en Configuración.");
+    renderSyncInfo("Sin URL de Google Sheets configurada", "error");
+    return false;
+  }
+  syncing = true;
+  if (!silent) setSyncState(true, "Sincronizando base de datos...");
+  try {
+    await flushPending();
+    if (staffDirty) await pushStaff();
+
+    const data = await apiGet({ action: "load" });
+    if (!data || !data.ok) throw new Error((data && data.error) || "respuesta-invalida");
+
+    if (!staffDirty && Array.isArray(data.staff)) {
+      staff = data.staff;
+      saveJSON(STORAGE_KEYS.STAFF, staff);
+    }
+    attendance = mergeAttendance(data.attendance);
+    saveJSON(STORAGE_KEYS.ATTENDANCE, attendance);
+    applyRemoteConfig(data.config);
+
+    lastSyncAt = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+    applyBranding();
+    refreshAll();
+    if (workerInView) renderWorkerHistory(workerInView);
+    renderSyncInfo(null, "ok");
+    if (!silent) showToast(`Base actualizada: ${staff.length} colaboradores y ${attendance.length} registros.`);
+    return true;
   } catch {
-    // Mantiene los datos locales si no hay conexión
+    renderSyncInfo("Sin conexión con la base compartida · trabajando con los datos de este dispositivo", "error");
+    if (!silent) showToast("No se pudo conectar con Google Sheets. Revisa la URL en Configuración.");
+    return false;
   } finally {
+    syncing = false;
     setSyncState(false);
   }
 }
 
-function syncToGoogleSheets(record) {
-  const url = getSheetsUrl();
-  if (!url) return;
-  setSyncState(true, "Guardando registro en Google Sheets...");
-  fetch(url, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action: "addAttendance", ...record })
-  })
-    .catch(() => {})
-    .finally(() => setTimeout(() => setSyncState(false), 600));
-}
+setInterval(() => { if (!activeRoutine) syncNow(true); }, AUTO_SYNC_MS);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !activeRoutine) syncNow(true); });
+window.addEventListener("online", () => syncNow(true));
 
-function syncStaffToGoogleSheets() {
-  const url = getSheetsUrl();
-  if (!url) return;
-  setSyncState(true, "Guardando listado de personal en Google Sheets...");
-  fetch(url, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action: "saveStaff", staff })
-  })
-    .catch(() => {})
-    .finally(() => setTimeout(() => setSyncState(false), 700));
-}
-
-// ==========================================
-// MODO ADMINISTRADOR VS PANTALLA PRINCIPAL
-// ==========================================
-function enterAdminMode() {
-  document.getElementById("kiosk-view").classList.add("hidden");
-  document.getElementById("admin-view").classList.remove("hidden");
-  document.getElementById("admin-nav").classList.remove("hidden");
-  document.getElementById("btn-open-admin").classList.add("hidden");
-  document.getElementById("btn-exit-admin").classList.remove("hidden");
-  switchAdminTab("cumplimiento");
-  refreshAll();
-}
-
-function exitAdminMode() {
-  document.getElementById("admin-view").classList.add("hidden");
-  document.getElementById("admin-nav").classList.add("hidden");
-  document.getElementById("btn-exit-admin").classList.add("hidden");
-  document.getElementById("btn-open-admin").classList.remove("hidden");
-  document.getElementById("kiosk-view").classList.remove("hidden");
-}
-
-function switchAdminTab(tabName) {
-  document.querySelectorAll("#admin-nav .tab-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.tab === tabName);
-  });
-  document.querySelectorAll("#admin-view .tab-panel").forEach(panel => {
-    panel.classList.toggle("active", panel.id === `tab-${tabName}`);
-  });
-}
-
-document.querySelectorAll("#admin-nav .tab-btn").forEach(btn => {
-  btn.addEventListener("click", () =>switchAdminTab(btn.dataset.tab));
-});
-
-document.getElementById("btn-open-admin").addEventListener("click", () => {
-  document.getElementById("admin-pass-input").value = "";
-  document.getElementById("admin-login-error").classList.add("hidden");
-  document.getElementById("admin-modal").classList.remove("hidden");
-  document.getElementById("admin-pass-input").focus();
-});
-
-document.getElementById("btn-cancel-admin").addEventListener("click", () => {
-  document.getElementById("admin-modal").classList.add("hidden");
-});
-
-document.getElementById("form-admin-login").addEventListener("submit", e => {
-  e.preventDefault();
-  const val = document.getElementById("admin-pass-input").value.trim();
-  const currentPass = (settings.adminPass || ADMIN_PASS).trim();
-  if (val === currentPass) {
-    document.getElementById("admin-modal").classList.add("hidden");
-    enterAdminMode();
-  } else {
-    document.getElementById("admin-login-error").classList.remove("hidden");
-  }
-});
-
-document.getElementById("btn-exit-admin").addEventListener("click", exitAdminMode);
-
-// ==========================================
-// PANTALLA PRINCIPAL: INGRESO POR CÉDULA
-// ==========================================
+// ==========================================================
+// PANTALLA DEL COLABORADOR
+// ==========================================================
 const cedulaInput = document.getElementById("cedula-input");
 const cedulaPreview = document.getElementById("cedula-preview");
+const btnMyHistory = document.getElementById("btn-my-history");
 
-cedulaInput.addEventListener("input", () => {
+function findPerson(doc) {
+  const key = String(doc || "").trim().toLowerCase();
+  if (!key) return null;
+  return staff.find(p => String(p.id).trim().toLowerCase() === key) || null;
+}
+
+function renderCedulaPreview() {
   const doc = cedulaInput.value.trim();
   if (!doc) {
     cedulaPreview.classList.add("hidden");
+    btnMyHistory.classList.add("hidden");
     return;
   }
-  const found = staff.find(p =>p.id.toLowerCase() === doc.toLowerCase());
+  const found = findPerson(doc);
   cedulaPreview.classList.remove("hidden");
-  if (found) {
-    const today = todayISO();
-    const myToday = attendance.filter(r =>r.date === today && r.id === found.id);
-    const lastTime = myToday.length > 0 ? myToday[0].time : null;
-    const goal = Number(settings.dailyGoal) || 3;
-    const progressText = myToday.length > 0
-      ? `Hoy llevas <strong>${myToday.length} de ${goal}</strong> pausas (última a las ${lastTime}).`
-      : `Hoy llevas <strong>0 de ${goal}</strong> pausas realizadas.`;
-    cedulaPreview.className = "cedula-preview";
-    cedulaPreview.innerHTML = ` <strong>${escapeHTML(found.name)}</strong> · ${escapeHTML(found.area)}<br/><span style="font-size:0.82rem;">${progressText}</span>`;
-  } else {
-    cedulaPreview.className = "cedula-preview not-found";
-    cedulaPreview.innerHTML = `La cédula <strong>${escapeHTML(doc)}</strong>no está registrada en el listado. Solicita al administrador que te agregue.`;
-  }
-});
 
-document.getElementById("form-cedula-start").addEventListener("submit", e => {
+  if (!found) {
+    btnMyHistory.classList.add("hidden");
+    cedulaPreview.className = "cedula-preview not-found";
+    cedulaPreview.innerHTML = staff.length === 0
+      ? `Aún no se ha descargado el listado de personal. Toca <strong>Actualizar base</strong> o revisa tu conexión.`
+      : `La cédula <strong>${escapeHTML(doc)}</strong> no está registrada. Solicita al administrador que te agregue.`;
+    return;
+  }
+
+  btnMyHistory.classList.remove("hidden");
+  const hoy = jornadaISO();
+  const misHoy = attendance.filter(r => r.date === hoy && String(r.id) === String(found.id));
+  const meta = Number(settings.dailyGoal) || 3;
+  const espera = cooldownMinutes(found.id);
+
+  let estado = misHoy.length > 0
+    ? `Hoy llevas <strong>${misHoy.length} de ${meta}</strong> pausas (última a las ${escapeHTML(misHoy[0].time)}).`
+    : `Hoy llevas <strong>0 de ${meta}</strong> pausas realizadas.`;
+
+  if (espera > 0) {
+    estado += `<br/><span class="cooldown-note">Podrás iniciar tu siguiente pausa en ${espera} minuto(s).</span>`;
+  }
+  if (found.medical) {
+    estado += `<br/><span class="medical-note">Tienes recomendaciones médicas registradas.</span>`;
+  }
+
+  cedulaPreview.className = "cedula-preview";
+  cedulaPreview.innerHTML = `<strong>${escapeHTML(found.name)}</strong> · ${escapeHTML(found.area)}<br/><span style="font-size:0.82rem;">${estado}</span>`;
+}
+
+cedulaInput.addEventListener("input", renderCedulaPreview);
+
+document.getElementById("form-cedula-start").addEventListener("submit", async e => {
   e.preventDefault();
   const doc = cedulaInput.value.trim();
   if (!doc) return;
 
-  const person = staff.find(p =>p.id.toLowerCase() === doc.toLowerCase());
+  let person = findPerson(doc);
+  if (!person) { await syncNow(true); person = findPerson(doc); }
+
   if (!person) {
     cedulaPreview.classList.remove("hidden");
     cedulaPreview.className = "cedula-preview not-found";
-    cedulaPreview.innerHTML = `No puedes iniciar: la cédula <strong>${escapeHTML(doc)}</strong>no está registrada en el listado de personal.`;
-    showToast("Cédula no registrada. Solo el personal autorizado en el listado puede iniciar.");
+    cedulaPreview.innerHTML = `No puedes iniciar: la cédula <strong>${escapeHTML(doc)}</strong> no está registrada en el listado de personal.`;
+    showToast("Cédula no registrada. Solo el personal autorizado puede iniciar.");
     cedulaInput.focus();
     return;
   }
-  activeParticipant = person;
-  startGuidedBreak(currentBlockIndex);
-});
 
-// ==========================================
-// TEMPORIZADOR DE 2 HORAS
-// ==========================================
-function updateTimerUI() {
-  document.getElementById("countdown-display").textContent = formatHMS(mainRemaining);
-  const routine = ROUTINES[currentBlockIndex];
-  document.getElementById("next-routine-name").textContent = routine.name;
-  document.getElementById("kiosk-block-badge").textContent = `Bloque ${currentBlockIndex + 1} de ${ROUTINES.length}`;
-}
-
-function setTimerBadge(text, cls) {
-  const el = document.getElementById("timer-status-badge");
-  el.textContent = text;
-  el.className = `badge ${cls}`;
-}
-
-document.getElementById("btn-start-timer").addEventListener("click", () => {
-  if (mainInterval) return;
-  setTimerBadge("Ciclo activo", "badge-active");
-  document.getElementById("btn-start-timer").disabled = true;
-  document.getElementById("btn-pause-timer").disabled = false;
-
-  mainInterval = setInterval(() => {
-    mainRemaining--;
-    updateTimerUI();
-    if (mainRemaining <= 0) {
-      clearInterval(mainInterval);
-      mainInterval = null;
-      mainRemaining = TWO_HOURS_SECONDS;
-      document.getElementById("btn-start-timer").disabled = false;
-      document.getElementById("btn-pause-timer").disabled = true;
-      setTimerBadge("¡Hora de pausa!", "badge-alert");
-      playEndChime();
-      showToast("¡Es hora de la pausa activa! Ingresa tu cédula para comenzar.");
-    }
-  }, 1000);
-});
-
-document.getElementById("btn-pause-timer").addEventListener("click", () => {
-  if (!mainInterval) return;
-  clearInterval(mainInterval);
-  mainInterval = null;
-  setTimerBadge("En pausa", "badge-idle");
-  document.getElementById("btn-start-timer").disabled = false;
-  document.getElementById("btn-pause-timer").disabled = true;
-});
-
-document.getElementById("btn-reset-timer").addEventListener("click", () => {
-  if (mainInterval) {
-    clearInterval(mainInterval);
-    mainInterval = null;
+  const espera = cooldownMinutes(person.id);
+  if (espera > 0) {
+    const cuando = new Date(Date.now() + espera * 60000);
+    cedulaPreview.classList.remove("hidden");
+    cedulaPreview.className = "cedula-preview not-found";
+    cedulaPreview.innerHTML = `Ya registraste una pausa hace poco. Tu siguiente pausa estará disponible a las <strong>${pad2(cuando.getHours())}:${pad2(cuando.getMinutes())}</strong>.`;
+    showToast(`Debes esperar ${espera} minuto(s) entre pausas.`);
+    return;
   }
-  mainRemaining = TWO_HOURS_SECONDS;
-  setTimerBadge("En pausa", "badge-idle");
-  document.getElementById("btn-start-timer").disabled = false;
-  document.getElementById("btn-pause-timer").disabled = true;
-  updateTimerUI();
+
+  activeParticipant = person;
+
+  if (person.medical) {
+    document.getElementById("medical-text").textContent = person.medical;
+    document.getElementById("medical-modal").classList.remove("hidden");
+    speakSpanish("Atención: tienes recomendaciones médicas registradas. Realiza solo los ejercicios autorizados.");
+    return;
+  }
+  startGuidedBreak();
 });
 
-// ==========================================
-// REPRODUCTOR DE PAUSA ACTIVA GUIADA
-// ==========================================
-function startGuidedBreak(blockIdx) {
-  activeRoutine = ROUTINES[blockIdx];
+document.getElementById("btn-medical-cancel").addEventListener("click", () => {
+  document.getElementById("medical-modal").classList.add("hidden");
+  activeParticipant = null;
+});
+
+document.getElementById("btn-medical-continue").addEventListener("click", () => {
+  document.getElementById("medical-modal").classList.add("hidden");
+  startGuidedBreak();
+});
+
+document.getElementById("btn-sync-kiosk").addEventListener("click", async () => {
+  await syncNow(false);
+  renderCedulaPreview();
+});
+
+// ==========================================================
+// REPRODUCTOR DE PAUSA GUIADA
+// ==========================================================
+function startGuidedBreak() {
+  activeRoutine = ROUTINES[blockIndexForNow()];
   currentExIndex = 0;
   exPaused = false;
+
   document.getElementById("guided-player").classList.remove("hidden");
   document.getElementById("player-routine-title").textContent = activeRoutine.name;
   document.getElementById("player-participant-label").textContent =
     `Participante: ${activeParticipant.name} (C.C. ${activeParticipant.id} · ${activeParticipant.area})`;
+
+  const banner = document.getElementById("player-medical-banner");
+  if (activeParticipant.medical) {
+    banner.textContent = `Recomendación médica: ${activeParticipant.medical}. Omite cualquier ejercicio que te genere dolor.`;
+    banner.classList.remove("hidden");
+  } else {
+    banner.classList.add("hidden");
+  }
+
   loadExercise(0);
   document.getElementById("guided-player").scrollIntoView({ behavior: "smooth" });
 }
@@ -649,9 +577,8 @@ function loadExercise(idx) {
   exRemaining = ex.duration;
   exPaused = false;
 
-  const visualEl = document.getElementById("player-visual");
   if (typeof mountExerciseAnimator === "function") {
-    mountExerciseAnimator(visualEl, ex.svgKey);
+    mountExerciseAnimator(document.getElementById("player-visual"), ex.svgKey);
   }
 
   document.getElementById("player-step-label").textContent = `Ejercicio ${idx + 1} de ${activeRoutine.exercises.length}`;
@@ -662,14 +589,15 @@ function loadExercise(idx) {
   document.getElementById("player-ex-timer").textContent = formatMS(exRemaining);
   document.getElementById("player-total-timer").textContent = formatMS(calcTotalRemaining());
   document.getElementById("btn-ex-toggle").textContent = "Pausar";
+  document.getElementById("player-progress-fill").style.width = `${(idx / activeRoutine.exercises.length) * 100}%`;
 
-  const pct = (idx / activeRoutine.exercises.length) * 100;
-  document.getElementById("player-progress-fill").style.width = `${pct}%`;
-
-  // Control anti-trampa: ocultar/mostrar botones de salto según configuración
   const showSkip = Boolean(settings.allowSkip);
   document.getElementById("btn-ex-prev").classList.toggle("hidden", !showSkip);
   document.getElementById("btn-ex-next").classList.toggle("hidden", !showSkip);
+  // Quien tiene restricción médica siempre puede omitir un ejercicio
+  document.getElementById("btn-ex-skip-medical").classList.toggle(
+    "hidden", showSkip || !(activeParticipant && activeParticipant.medical)
+  );
 
   playStartChime();
   speakSpanish(`Ejercicio ${idx + 1}: ${ex.name}. ${ex.desc}`);
@@ -677,28 +605,23 @@ function loadExercise(idx) {
   exInterval = setInterval(() => {
     if (exPaused) return;
     exRemaining--;
-    document.getElementById("player-ex-timer").textContent = formatMS(Math.max(0, exRemaining));
+    document.getElementById("player-ex-timer").textContent = formatMS(exRemaining);
     document.getElementById("player-total-timer").textContent = formatMS(calcTotalRemaining());
-
-    if (exRemaining === 3) {
-      speakSpanish("Tres, dos, uno");
-    }
-    if (exRemaining > 0 && exRemaining <= 3) {
-      playBeep(660, 0.12);
-    }
-
+    if (exRemaining === 3) speakSpanish("Tres, dos, uno");
+    if (exRemaining > 0 && exRemaining <= 3) playBeep(660, 0.12);
     if (exRemaining <= 0) {
       playEndChime();
-      if (currentExIndex + 1 < activeRoutine.exercises.length) {
-        loadExercise(currentExIndex + 1);
-      } else {
-        finishGuidedBreak();
-      }
+      if (currentExIndex + 1 < activeRoutine.exercises.length) loadExercise(currentExIndex + 1);
+      else finishGuidedBreak();
     }
   }, 1000);
 }
 
-let pendingCompletedRecord = null;
+function advanceExercise() {
+  if (!activeRoutine) return;
+  if (currentExIndex + 1 < activeRoutine.exercises.length) loadExercise(currentExIndex + 1);
+  else finishGuidedBreak();
+}
 
 function finishGuidedBreak() {
   clearInterval(exInterval);
@@ -706,45 +629,76 @@ function finishGuidedBreak() {
   playEndChime();
 
   if (activeParticipant && activeRoutine) {
-    const now = new Date();
+    const ahora = new Date();
     pendingCompletedRecord = {
-      date: todayISO(),
-      time: now.toTimeString().slice(0, 5),
+      rid: makeRid(),
+      createdAtMs: Date.now(),
+      date: jornadaISO(ahora),
+      time: `${pad2(ahora.getHours())}:${pad2(ahora.getMinutes())}`,
       id: activeParticipant.id,
       name: activeParticipant.name,
       area: activeParticipant.area,
       routine: activeRoutine.name,
-      feeling: "Bien"
+      feeling: "Bien",
+      segment: ""
     };
     document.getElementById("feeling-worker-name").textContent =
       `${activeParticipant.name}, ¿cómo te sientes hoy después de tu pausa?`;
+    document.getElementById("feeling-step-1").classList.remove("hidden");
+    document.getElementById("feeling-step-2").classList.add("hidden");
     document.getElementById("feeling-modal").classList.remove("hidden");
     speakSpanish(`Excelente ${activeParticipant.name}. Selecciona cómo te sientes hoy para guardar tu registro.`);
   }
 
   document.getElementById("guided-player").classList.add("hidden");
+  activeRoutine = null;
+}
+
+async function guardarRegistro(record) {
+  attendance.unshift(record);
+  saveJSON(STORAGE_KEYS.ATTENDANCE, attendance);
+  pending.push(record);
+  saveJSON(STORAGE_KEYS.PENDING, pending);
+
+  const nombre = record.name;
+  pendingCompletedRecord = null;
+  activeParticipant = null;
+
+  document.getElementById("feeling-modal").classList.add("hidden");
+  cedulaInput.value = "";
+  cedulaPreview.classList.add("hidden");
+  btnMyHistory.classList.add("hidden");
+  refreshAll();
+  showToast(`¡Gracias ${nombre}! Tu pausa activa quedó registrada.`);
+
+  setSyncState(true, "Guardando registro en la base compartida...");
+  await flushPending();
+  setSyncState(false);
+  renderSyncInfo();
 }
 
 document.querySelectorAll(".btn-feeling").forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     if (!pendingCompletedRecord) return;
-    pendingCompletedRecord.feeling = btn.dataset.feeling || "Bien";
-    attendance.unshift(pendingCompletedRecord);
-    saveJSON(STORAGE_KEYS.ATTENDANCE, attendance);
-    syncToGoogleSheets(pendingCompletedRecord);
+    const feeling = btn.dataset.feeling || "Bien";
+    pendingCompletedRecord.feeling = feeling;
 
-    const workerName = pendingCompletedRecord.name;
-    pendingCompletedRecord = null;
-    activeParticipant = null;
+    // Si hay molestia, se pregunta el segmento corporal (morbilidad sentida)
+    if (feeling.toLowerCase().includes("molestia")) {
+      document.getElementById("feeling-step-1").classList.add("hidden");
+      document.getElementById("feeling-step-2").classList.remove("hidden");
+      speakSpanish("¿En qué parte del cuerpo sientes la molestia?");
+      return;
+    }
+    await guardarRegistro(pendingCompletedRecord);
+  });
+});
 
-    document.getElementById("feeling-modal").classList.add("hidden");
-    cedulaInput.value = "";
-    cedulaPreview.classList.add("hidden");
-
-    currentBlockIndex = (currentBlockIndex + 1) % ROUTINES.length;
-    localStorage.setItem(STORAGE_KEYS.BLOCK_INDEX, String(currentBlockIndex));
-    refreshAll();
-    showToast(`¡Gracias ${workerName}! Tu pausa activa y estado quedaron registrados.`);
+document.querySelectorAll(".btn-segment").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    if (!pendingCompletedRecord) return;
+    pendingCompletedRecord.segment = btn.dataset.segment || "";
+    await guardarRegistro(pendingCompletedRecord);
   });
 });
 
@@ -761,231 +715,420 @@ document.getElementById("btn-ex-prev").addEventListener("click", () => {
   loadExercise(currentExIndex - 1);
 });
 
-document.getElementById("btn-ex-next").addEventListener("click", () => {
-  if (!activeRoutine) return;
-  if (currentExIndex + 1 < activeRoutine.exercises.length) {
-    loadExercise(currentExIndex + 1);
-  } else {
-    finishGuidedBreak();
-  }
+document.getElementById("btn-ex-next").addEventListener("click", advanceExercise);
+document.getElementById("btn-ex-skip-medical").addEventListener("click", () => {
+  showToast("Ejercicio omitido por recomendación médica.");
+  advanceExercise();
 });
 
 document.getElementById("btn-close-player").addEventListener("click", () => {
   clearInterval(exInterval);
   activeParticipant = null;
+  activeRoutine = null;
   document.getElementById("guided-player").classList.add("hidden");
 });
 
-// ==========================================
-// ADMIN: CUMPLIMIENTO (QUIÉNES SÍ / QUIÉNES NO)
-// ==========================================
-function buildComplianceRows(dateStr) {
-  const dayRecs = attendance.filter(r =>r.date === dateStr);
-  const map = new Map();
+// ==========================================================
+// HISTORIAL PERSONAL DEL TRABAJADOR
+// ==========================================================
+function workerStats(person) {
+  const recs = recordsFor(person.id);
+  const meta = Number(settings.dailyGoal) || 3;
+  const hoy = jornadaISO();
+  const mes = hoy.slice(0, 7);
 
-  staff.forEach(p => {
-    map.set(p.id, {
-      id: p.id,
-      name: p.name,
-      area: p.area,
-      count: 0,
-      lastTime: "-"
+  const delMes = recs.filter(r => String(r.date).startsWith(mes));
+  const porDia = {};
+  recs.forEach(r => { porDia[r.date] = (porDia[r.date] || 0) + 1; });
+
+  const diasMes = Object.keys(porDia).filter(d => d.startsWith(mes));
+  const diasMeta = diasMes.filter(d => porDia[d] >= meta).length;
+
+  // Racha: días consecutivos hacia atrás con al menos una pausa
+  let racha = 0;
+  const cursor = new Date();
+  if (!porDia[jornadaISO(cursor)]) cursor.setDate(cursor.getDate() - 1);
+  while (porDia[jornadaISO(cursor)]) { racha++; cursor.setDate(cursor.getDate() - 1); }
+
+  // Últimos 7 días
+  const semana = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const iso = jornadaISO(d);
+    semana.push({
+      iso,
+      etiqueta: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"][d.getDay()],
+      n: porDia[iso] || 0
     });
-  });
-
-  dayRecs.forEach(r => {
-    if (!map.has(r.id)) {
-      map.set(r.id, { id: r.id, name: r.name, area: r.area, count: 0, lastTime: "-" });
-    }
-    const row = map.get(r.id);
-    row.count++;
-    if (row.lastTime === "-" || r.time >row.lastTime) {
-      row.lastTime = r.time;
-    }
-  });
-
-  return Array.from(map.values()).sort((a, b) =>b.count - a.count || a.name.localeCompare(b.name));
-}
-
-function renderCompliance() {
-  const dateInput = document.getElementById("comp-date");
-  if (!dateInput.value) dateInput.value = todayISO();
-  const dateStr = dateInput.value;
-  const statusFilter = document.getElementById("comp-status-filter").value;
-  const query = document.getElementById("comp-search").value.trim().toLowerCase();
-
-  const allRows = buildComplianceRows(dateStr);
-  const dayRecs = attendance.filter(r =>r.date === dateStr);
-  const yesCount = allRows.filter(r =>r.count > 0).length;
-  const noCount = allRows.filter(r =>r.count === 0).length;
-  const totalPausas = allRows.reduce((acc, r) =>acc + r.count, 0);
-  const pct = allRows.length > 0 ? Math.round((yesCount / allRows.length) * 100) : 0;
-  const painCount = dayRecs.filter(r => (r.feeling || "").toLowerCase().includes("molestia")).length;
-
-  document.getElementById("stat-staff-count").textContent = allRows.length;
-  document.getElementById("stat-yes-count").textContent = yesCount;
-  document.getElementById("stat-no-count").textContent = noCount;
-  document.getElementById("stat-compliance-pct").textContent = `${pct}%`;
-  document.getElementById("stat-today-attendance").textContent = totalPausas;
-  document.getElementById("stat-pain-count").textContent = painCount;
-
-  // Renderizar resumen por área
-  renderAreaSummary(allRows, dayRecs);
-
-  const filtered = allRows.filter(r => {
-    if (statusFilter === "yes" && r.count === 0) return false;
-    if (statusFilter === "no" && r.count > 0) return false;
-    if (query) {
-      const match =
-        r.id.toLowerCase().includes(query) ||
-        r.name.toLowerCase().includes(query) ||
-        r.area.toLowerCase().includes(query);
-      if (!match) return false;
-    }
-    return true;
-  });
-
-  const tbody = document.getElementById("compliance-table-body");
-  tbody.innerHTML = "";
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"class="muted">No hay colaboradores para mostrar. Carga tu personal en la pestaña <strong>Personal</strong>.</td></tr>`;
-    return;
   }
 
-  filtered.forEach(r => {
-    const tr = document.createElement("tr");
-    const badge = r.count > 0
-      ? `<span class="badge badge-ok">Sí cumplió</span>`
-      : `<span class="badge badge-no">No ha hecho</span>`;
-    tr.innerHTML = `
-      <td>${escapeHTML(r.id)}</td>
-      <td><strong>${escapeHTML(r.name)}</strong></td>
-      <td>${escapeHTML(r.area)}</td>
-      <td><strong>${r.count}</strong></td>
-      <td>${escapeHTML(r.lastTime)}</td>
-      <td>${badge}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  return {
+    recs, meta,
+    hoy: porDia[hoy] || 0,
+    mesTotal: delMes.length,
+    diasMeta, racha, semana,
+    molestias: recs.filter(r => (r.feeling || "").toLowerCase().includes("molestia")).length
+  };
 }
 
-document.getElementById("comp-date").addEventListener("change", renderCompliance);
-document.getElementById("comp-status-filter").addEventListener("change", renderCompliance);
-document.getElementById("comp-search").addEventListener("input", renderCompliance);
+function renderWorkerHistory(person) {
+  const fresh = findPerson(person.id) || person;
+  workerInView = fresh;
+  const s = workerStats(fresh);
+
+  document.getElementById("worker-identity").innerHTML = `
+    <strong>${escapeHTML(fresh.name)}</strong>
+    <span class="muted">C.C. ${escapeHTML(fresh.id)} · ${escapeHTML(fresh.area)}</span>
+    ${fresh.medical ? `<div class="medical-banner" style="margin-top:0.6rem;">Recomendación médica registrada: ${escapeHTML(fresh.medical)}</div>` : ""}
+  `;
+
+  document.getElementById("worker-stats").innerHTML = `
+    <div class="stat-box ${s.hoy >= s.meta ? "stat-ok" : "stat-pending"}">
+      <span class="stat-value">${s.hoy}/${s.meta}</span><span class="stat-label">Pausas de hoy</span>
+    </div>
+    <div class="stat-box"><span class="stat-value">${s.mesTotal}</span><span class="stat-label">Pausas este mes</span></div>
+    <div class="stat-box stat-ok"><span class="stat-value">${s.diasMeta}</span><span class="stat-label">Días con meta cumplida</span></div>
+    <div class="stat-box"><span class="stat-value">${s.racha}</span><span class="stat-label">Días seguidos activo</span></div>
+  `;
+
+  const max = Math.max(s.meta, ...s.semana.map(d => d.n), 1);
+  document.getElementById("worker-week").innerHTML = s.semana.map(d => `
+    <div class="week-col">
+      <div class="week-bar-wrap">
+        <div class="week-bar ${d.n >= s.meta ? "is-goal" : ""}" style="height:${Math.round((d.n / max) * 100)}%"></div>
+      </div>
+      <span class="week-n">${d.n}</span>
+      <span class="week-label">${d.etiqueta}</span>
+    </div>
+  `).join("");
+
+  const tbody = document.getElementById("worker-history-body");
+  if (!s.recs.length) {
+    tbody.innerHTML = `<tr><td colspan="4" class="muted">Todavía no tienes pausas registradas. ¡Haz la primera hoy!</td></tr>`;
+  } else {
+    tbody.innerHTML = s.recs.slice(0, 60).map(r => {
+      const f = r.feeling || "Bien";
+      const badge = f.toLowerCase().includes("molestia")
+        ? `<span class="badge badge-no">${escapeHTML(f)}${r.segment ? " · " + escapeHTML(r.segment) : ""}</span>`
+        : f === "Cansado"
+          ? `<span class="badge badge-alert">${escapeHTML(f)}</span>`
+          : `<span class="badge badge-ok">${escapeHTML(f)}</span>`;
+      return `<tr>
+        <td>${escapeHTML(r.date)}</td>
+        <td>${escapeHTML(r.time)}</td>
+        <td>${escapeHTML(r.routine)}</td>
+        <td>${badge}</td>
+      </tr>`;
+    }).join("");
+  }
+}
+
+function showWorkerView(person) {
+  renderWorkerHistory(person);
+  document.getElementById("kiosk-view").classList.add("hidden");
+  document.getElementById("worker-view").classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+btnMyHistory.addEventListener("click", async () => {
+  const person = findPerson(cedulaInput.value.trim());
+  if (!person) return;
+  await syncNow(true);
+  showWorkerView(person);
+});
+
+document.getElementById("btn-close-worker").addEventListener("click", () => {
+  workerInView = null;
+  document.getElementById("worker-view").classList.add("hidden");
+  document.getElementById("kiosk-view").classList.remove("hidden");
+});
+
+document.getElementById("btn-print-constancia").addEventListener("click", () => {
+  if (!workerInView) return;
+  const s = workerStats(workerInView);
+  const filas = s.recs.slice(0, 200).map(r =>
+    `<tr><td>${escapeHTML(r.date)}</td><td>${escapeHTML(r.time)}</td><td>${escapeHTML(r.routine)}</td><td>${escapeHTML(r.feeling || "Bien")}</td></tr>`
+  ).join("");
+  abrirImpresion(`
+    <h1>${escapeHTML(settings.companyName || "Pausas Activas SST")}</h1>
+    <h2>Constancia de participación en pausas activas</h2>
+    <table class="datos">
+      <tr><td><b>Nombre</b></td><td>${escapeHTML(workerInView.name)}</td></tr>
+      <tr><td><b>Documento</b></td><td>${escapeHTML(workerInView.id)}</td></tr>
+      <tr><td><b>Área</b></td><td>${escapeHTML(workerInView.area)}</td></tr>
+      <tr><td><b>Pausas registradas en el mes</b></td><td>${s.mesTotal}</td></tr>
+      <tr><td><b>Días con meta cumplida</b></td><td>${s.diasMeta}</td></tr>
+      <tr><td><b>Total histórico</b></td><td>${s.recs.length}</td></tr>
+    </table>
+    <h3>Detalle de pausas</h3>
+    <table class="grid"><thead><tr><th>Fecha</th><th>Hora</th><th>Rutina</th><th>Bienestar</th></tr></thead><tbody>${filas}</tbody></table>
+    <p class="pie">Documento generado automáticamente el ${new Date().toLocaleString("es-CO")} por el programa de pausas activas del SG-SST.</p>
+    <div class="firmas"><div>Firma del colaborador</div><div>Responsable SST</div></div>
+  `, "Constancia de pausas activas");
+});
+
+// ==========================================================
+// IMPRESIÓN (constancias e informes, sin librerías externas)
+// ==========================================================
+function abrirImpresion(contenidoHTML, titulo) {
+  const win = window.open("", "_blank");
+  if (!win) { showToast("Permite las ventanas emergentes para generar el documento."); return; }
+  const logo = settings.logoDataUrl ? `<img class="logo" src="${settings.logoDataUrl}" alt="" />` : "";
+  win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${escapeHTML(titulo)}</title>
+  <style>
+    body{font-family:Segoe UI,Arial,sans-serif;color:#0f172a;padding:34px;max-width:900px;margin:0 auto;}
+    .logo{height:52px;float:right;}
+    h1{color:#0f766e;font-size:21px;margin:0 0 2px;}
+    h2{font-size:16px;margin:0 0 16px;color:#334155;font-weight:600;}
+    h3{font-size:14px;margin:22px 0 7px;color:#0f766e;border-bottom:2px solid #99f6e4;padding-bottom:4px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}
+    table.grid th{background:#f0fdfa;text-align:left;border:1px solid #cbd5e1;padding:5px 7px;}
+    table.grid td{border:1px solid #e2e8f0;padding:5px 7px;}
+    table.datos td{padding:4px 7px;border-bottom:1px solid #e2e8f0;}
+    .kpis{display:flex;gap:10px;margin:14px 0;}
+    .kpi{flex:1;border:2px solid #99f6e4;border-radius:10px;padding:10px;text-align:center;}
+    .kpi b{display:block;font-size:22px;color:#0f766e;}
+    .kpi span{font-size:11px;color:#64748b;}
+    .pie{font-size:10.5px;color:#64748b;margin-top:26px;}
+    .firmas{display:flex;gap:40px;margin-top:46px;font-size:11px;text-align:center;}
+    .firmas div{flex:1;border-top:1px solid #0f172a;padding-top:5px;}
+    @media print{ body{padding:0;} }
+  </style></head><body>${logo}${contenidoHTML}
+  <script>window.onload=()=>window.print();<\/script></body></html>`);
+  win.document.close();
+}
+
+// ==========================================================
+// ADMINISTRADOR
+// ==========================================================
+function enterAdminMode() {
+  document.getElementById("kiosk-view").classList.add("hidden");
+  document.getElementById("worker-view").classList.add("hidden");
+  document.getElementById("admin-view").classList.remove("hidden");
+  document.getElementById("admin-nav").classList.remove("hidden");
+  document.getElementById("btn-open-admin").classList.add("hidden");
+  document.getElementById("btn-exit-admin").classList.remove("hidden");
+  switchAdminTab("cumplimiento");
+  refreshAll();
+  syncNow(true);
+}
+
+function exitAdminMode() {
+  document.getElementById("admin-view").classList.add("hidden");
+  document.getElementById("admin-nav").classList.add("hidden");
+  document.getElementById("btn-exit-admin").classList.add("hidden");
+  document.getElementById("btn-open-admin").classList.remove("hidden");
+  document.getElementById("kiosk-view").classList.remove("hidden");
+}
+
+function switchAdminTab(tabName) {
+  document.querySelectorAll("#admin-nav .tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tabName));
+  document.querySelectorAll("#admin-view .tab-panel").forEach(p => p.classList.toggle("active", p.id === `tab-${tabName}`));
+}
+
+document.querySelectorAll("#admin-nav .tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => switchAdminTab(btn.dataset.tab));
+});
+
+document.getElementById("btn-open-admin").addEventListener("click", () => {
+  document.getElementById("admin-pass-input").value = "";
+  document.getElementById("admin-login-error").classList.add("hidden");
+  document.getElementById("admin-modal").classList.remove("hidden");
+  document.getElementById("admin-pass-input").focus();
+});
+
+document.getElementById("btn-cancel-admin").addEventListener("click", () => {
+  document.getElementById("admin-modal").classList.add("hidden");
+});
+
+async function checkAdminPass(value) {
+  const guardado = (settings.adminPassHash || "").trim();
+  const hash = await sha256Hex(value);
+  if (guardado) return hash === guardado;
+  return value === ADMIN_PASS;
+}
+
+document.getElementById("form-admin-login").addEventListener("submit", async e => {
+  e.preventDefault();
+  const val = document.getElementById("admin-pass-input").value.trim();
+  if (await checkAdminPass(val)) {
+    setAdminHash(await sha256Hex(val));
+    document.getElementById("admin-modal").classList.add("hidden");
+    enterAdminMode();
+  } else {
+    document.getElementById("admin-login-error").classList.remove("hidden");
+  }
+});
+
+document.getElementById("btn-exit-admin").addEventListener("click", exitAdminMode);
+document.getElementById("btn-sync-admin").addEventListener("click", () => syncNow(false));
+
+// ---------- Cumplimiento ----------
+function buildComplianceRows(dateStr) {
+  const dayRecs = attendance.filter(r => r.date === dateStr);
+  const map = new Map();
+  staff.forEach(p => map.set(String(p.id), { id: p.id, name: p.name, area: p.area, count: 0, lastTime: "-" }));
+  dayRecs.forEach(r => {
+    const k = String(r.id);
+    if (!map.has(k)) map.set(k, { id: r.id, name: r.name, area: r.area, count: 0, lastTime: "-" });
+    const row = map.get(k);
+    row.count++;
+    if (row.lastTime === "-" || r.time > row.lastTime) row.lastTime = r.time;
+  });
+  return Array.from(map.values()).sort((a, b) => b.count - a.count || String(a.name).localeCompare(String(b.name)));
+}
 
 function buildAreaSummary(allRows, dayRecs) {
   const areaMap = new Map();
   allRows.forEach(r => {
     const area = r.area || "Sin área";
-    if (!areaMap.has(area)) {
-      areaMap.set(area, { area, total: 0, yes: 0, no: 0, pain: 0 });
-    }
-    const item = areaMap.get(area);
-    item.total++;
-    if (r.count > 0) item.yes++;
-    else item.no++;
+    if (!areaMap.has(area)) areaMap.set(area, { area, total: 0, yes: 0, no: 0, pain: 0 });
+    const it = areaMap.get(area);
+    it.total++;
+    if (r.count > 0) it.yes++; else it.no++;
   });
-
   dayRecs.forEach(r => {
     if ((r.feeling || "").toLowerCase().includes("molestia")) {
       const area = r.area || "Sin área";
       if (areaMap.has(area)) areaMap.get(area).pain++;
     }
   });
-
   return Array.from(areaMap.values())
     .map(a => ({ ...a, pct: a.total > 0 ? Math.round((a.yes / a.total) * 100) : 0 }))
-    .sort((a, b) =>b.pct - a.pct || a.area.localeCompare(b.area));
+    .sort((a, b) => b.pct - a.pct || a.area.localeCompare(b.area));
 }
 
-function renderAreaSummary(allRows, dayRecs) {
-  const tbody = document.getElementById("area-summary-body");
-  if (!tbody) return;
+function renderCompliance() {
+  const dateInput = document.getElementById("comp-date");
+  if (!dateInput.value) dateInput.value = jornadaISO();
+  const dateStr = dateInput.value;
+  const statusFilter = document.getElementById("comp-status-filter").value;
+  const query = document.getElementById("comp-search").value.trim().toLowerCase();
+
+  const allRows = buildComplianceRows(dateStr);
+  const dayRecs = attendance.filter(r => r.date === dateStr);
+  const yes = allRows.filter(r => r.count > 0).length;
+  const pct = allRows.length ? Math.round((yes / allRows.length) * 100) : 0;
+
+  document.getElementById("stat-staff-count").textContent = allRows.length;
+  document.getElementById("stat-yes-count").textContent = yes;
+  document.getElementById("stat-no-count").textContent = allRows.length - yes;
+  document.getElementById("stat-compliance-pct").textContent = `${pct}%`;
+  document.getElementById("stat-today-attendance").textContent = allRows.reduce((a, r) => a + r.count, 0);
+  document.getElementById("stat-pain-count").textContent =
+    dayRecs.filter(r => (r.feeling || "").toLowerCase().includes("molestia")).length;
+
+  // Resumen por área
   const areas = buildAreaSummary(allRows, dayRecs);
-  tbody.innerHTML = "";
+  const abody = document.getElementById("area-summary-body");
+  abody.innerHTML = areas.length === 0
+    ? `<tr><td colspan="6" class="muted">Sin datos de áreas todavía.</td></tr>`
+    : areas.map(a => `<tr>
+        <td><strong>${escapeHTML(a.area)}</strong></td>
+        <td>${a.total}</td>
+        <td><span class="badge badge-ok">${a.yes}</span></td>
+        <td><span class="badge badge-no">${a.no}</span></td>
+        <td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:${a.pct}%"></div></div><strong>${a.pct}%</strong></div></td>
+        <td>${a.pain > 0 ? `<span class="badge badge-no">${a.pain}</span>` : "0"}</td>
+      </tr>`).join("");
 
-  if (areas.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"class="muted">Sin datos de áreas todavía.</td></tr>`;
-    return;
-  }
+  renderSegmentChart(dateStr);
 
-  areas.forEach(a => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><strong>${escapeHTML(a.area)}</strong></td>
-      <td>${a.total}</td>
-      <td><span class="badge badge-ok">${a.yes}</span></td>
-      <td><span class="badge badge-no">${a.no}</span></td>
-      <td>
-        <div class="mini-bar-wrap">
-          <div class="mini-bar"><div class="mini-bar-fill"style="width:${a.pct}%"></div></div>
-          <strong>${a.pct}%</strong>
-        </div>
-      </td>
-      <td>${a.pain > 0 ? `<span class="badge badge-no"> ${a.pain}</span>` : "0"}</td>
-    `;
-    tbody.appendChild(tr);
+  const filtered = allRows.filter(r => {
+    if (statusFilter === "yes" && r.count === 0) return false;
+    if (statusFilter === "no" && r.count > 0) return false;
+    if (query) {
+      const m = String(r.id).toLowerCase().includes(query) ||
+                String(r.name).toLowerCase().includes(query) ||
+                String(r.area).toLowerCase().includes(query);
+      if (!m) return false;
+    }
+    return true;
   });
+
+  const tbody = document.getElementById("compliance-table-body");
+  tbody.innerHTML = filtered.length === 0
+    ? `<tr><td colspan="6" class="muted">No hay colaboradores para mostrar. Carga tu personal en la pestaña <strong>Personal</strong>.</td></tr>`
+    : filtered.map(r => `<tr>
+        <td>${escapeHTML(r.id)}</td>
+        <td><strong>${escapeHTML(r.name)}</strong></td>
+        <td>${escapeHTML(r.area)}</td>
+        <td><strong>${r.count}</strong></td>
+        <td>${escapeHTML(r.lastTime)}</td>
+        <td>${r.count > 0 ? `<span class="badge badge-ok">Sí cumplió</span>` : `<span class="badge badge-no">No ha hecho</span>`}</td>
+      </tr>`).join("");
 }
 
-document.getElementById("btn-export-compliance").addEventListener("click", () => {
-  const dateStr = document.getElementById("comp-date").value || todayISO();
-  const rows = buildComplianceRows(dateStr);
-  if (rows.length === 0) {
-    showToast("No hay datos para exportar.");
+// ---------- Morbilidad sentida por segmento ----------
+function recordsInRange(dateStr, days) {
+  if (Number(days) === 1) return attendance.filter(r => r.date === dateStr);
+  const desde = new Date();
+  desde.setDate(desde.getDate() - (Number(days) - 1));
+  const desdeISO = isoOf(desde);
+  return attendance.filter(r => r.date >= desdeISO);
+}
+
+function renderSegmentChart(dateStr) {
+  const cont = document.getElementById("segment-chart");
+  const alerts = document.getElementById("segment-alerts");
+  if (!cont) return;
+  const days = document.getElementById("segment-range").value;
+  const recs = recordsInRange(dateStr, days).filter(r => (r.feeling || "").toLowerCase().includes("molestia"));
+
+  if (!recs.length) {
+    cont.innerHTML = `<p class="muted">Sin molestias reportadas en el periodo seleccionado.</p>`;
+    alerts.innerHTML = "";
     return;
   }
-  const sheetRows = [
-    ["Fecha", "Cedula", "Nombre", "Area", "Pausas_Hechas", "Ultima_Pausa", "Estado"],
-    ...rows.map(r => [dateStr, r.id, r.name, r.area, r.count, r.lastTime, r.count > 0 ? "SI CUMPLIO" : "NO HA HECHO"])
-  ];
-  exportExcelWorkbook([{ name: "Cumplimiento", rows: sheetRows }], `cumplimiento_pausas_${dateStr}.xlsx`);
-});
 
-document.getElementById("btn-export-excel-full").addEventListener("click", () => {
-  const dateStr = document.getElementById("comp-date").value || todayISO();
-  const compRows = buildComplianceRows(dateStr);
-  const dayRecs = attendance.filter(r =>r.date === dateStr);
-  const areaRows = buildAreaSummary(compRows, dayRecs);
+  const porSegmento = {};
+  const porPersona = {};
+  recs.forEach(r => {
+    const seg = r.segment || "Sin especificar";
+    porSegmento[seg] = (porSegmento[seg] || 0) + 1;
+    const k = `${r.id}|${r.name}|${r.area}`;
+    porPersona[k] = (porPersona[k] || 0) + 1;
+  });
 
-  const s1 = [
-    ["Fecha", "Cedula", "Nombre", "Area", "Pausas_Hechas", "Ultima_Pausa", "Estado"],
-    ...compRows.map(r => [dateStr, r.id, r.name, r.area, r.count, r.lastTime, r.count > 0 ? "SI CUMPLIO" : "NO HA HECHO"])
-  ];
-  const s2 = [
-    ["Area", "Total_Personal", "Si_Cumplieron", "Pendientes", "Porcentaje_Cumplimiento", "Alertas_Molestia"],
-    ...areaRows.map(a => [a.area, a.total, a.yes, a.no, `${a.pct}%`, a.pain])
-  ];
-  const s3 = [
-    ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Rutina", "Bienestar"],
-    ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, r.routine, r.feeling || "Bien"])
-  ];
+  const orden = Object.entries(porSegmento).sort((a, b) => b[1] - a[1]);
+  const max = orden[0][1];
+  cont.innerHTML = orden.map(([seg, n]) => `
+    <div class="seg-row">
+      <span class="seg-name">${escapeHTML(seg)}</span>
+      <div class="seg-bar-wrap"><div class="seg-bar" style="width:${Math.round((n / max) * 100)}%"></div></div>
+      <strong class="seg-n">${n}</strong>
+    </div>
+  `).join("");
 
-  exportExcelWorkbook(
-    [
-      { name: "Cumplimiento", rows: s1 },
-      { name: "Resumen_por_Area", rows: s2 },
-      { name: "Historial_Detallado", rows: s3 }
-    ],
-    `reporte_completo_sst_${dateStr}.xlsx`
-  );
-});
+  const criticos = Object.entries(porPersona).filter(([, n]) => n >= 3)
+    .sort((a, b) => b[1] - a[1]);
+  alerts.innerHTML = criticos.length
+    ? `<div class="alert-box"><strong>Requieren seguimiento (3 o más reportes en el periodo):</strong><ul>${
+        criticos.map(([k, n]) => {
+          const [id, name, area] = k.split("|");
+          return `<li>${escapeHTML(name)} — ${escapeHTML(area)} (C.C. ${escapeHTML(id)}): <strong>${n}</strong> reportes</li>`;
+        }).join("")
+      }</ul><span class="muted">Considera remisión a medicina laboral e inspección del puesto de trabajo.</span></div>`
+    : "";
+}
 
-// ==========================================
-// ADMIN: HISTORIAL DE ASISTENCIA
-// ==========================================
+document.getElementById("comp-date").addEventListener("change", renderCompliance);
+document.getElementById("comp-status-filter").addEventListener("change", renderCompliance);
+document.getElementById("comp-search").addEventListener("input", renderCompliance);
+document.getElementById("segment-range").addEventListener("change", renderCompliance);
+
+// ---------- Historial detallado ----------
 function renderAttendanceHistory() {
   const filterDate = document.getElementById("filter-date").value;
-  const filterArea = document.getElementById("filter-area").value;
-  const tbody = document.getElementById("attendance-history-body");
-  tbody.innerHTML = "";
-
   const areaSelect = document.getElementById("filter-area");
-  const currentAreaVal = areaSelect.value;
-  const areas = [...new Set([...staff.map(s =>s.area), ...attendance.map(a =>a.area)])].filter(Boolean).sort();
-  areaSelect.innerHTML = `<option value="">Todas las áreas</option>` + areas.map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join("");
-  areaSelect.value = currentAreaVal;
+  const filterArea = areaSelect.value;
+  const tbody = document.getElementById("attendance-history-body");
+
+  const areas = [...new Set([...staff.map(s => s.area), ...attendance.map(a => a.area)])].filter(Boolean).sort();
+  areaSelect.innerHTML = `<option value="">Todas las áreas</option>` +
+    areas.map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join("");
+  areaSelect.value = filterArea;
 
   const filtered = attendance.filter(rec => {
     if (filterDate && rec.date !== filterDate) return false;
@@ -993,89 +1136,91 @@ function renderAttendanceHistory() {
     return true;
   });
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"class="muted">Sin registros de asistencia para los filtros seleccionados.</td></tr>`;
-    return;
-  }
-
-  filtered.forEach(rec => {
-    const tr = document.createElement("tr");
-    const feeling = rec.feeling || "Bien";
-    const feelBadge = feeling.includes("molestia")
-      ? `<span class="badge badge-no"> ${escapeHTML(feeling)}</span>`
-      : feeling === "Cansado"
-        ? `<span class="badge badge-alert"> ${escapeHTML(feeling)}</span>`
-        : `<span class="badge badge-ok"> ${escapeHTML(feeling)}</span>`;
-    tr.innerHTML = `
-      <td>${escapeHTML(rec.date)} ${escapeHTML(rec.time)}</td>
-      <td>${escapeHTML(rec.id)}</td>
-      <td><strong>${escapeHTML(rec.name)}</strong></td>
-      <td>${escapeHTML(rec.area)}</td>
-      <td>${escapeHTML(rec.routine)}</td>
-      <td>${feelBadge}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  tbody.innerHTML = filtered.length === 0
+    ? `<tr><td colspan="7" class="muted">Sin registros de asistencia para los filtros seleccionados.</td></tr>`
+    : filtered.slice(0, 500).map(rec => {
+        const f = rec.feeling || "Bien";
+        const badge = f.toLowerCase().includes("molestia")
+          ? `<span class="badge badge-no">${escapeHTML(f)}${rec.segment ? " · " + escapeHTML(rec.segment) : ""}</span>`
+          : f === "Cansado"
+            ? `<span class="badge badge-alert">${escapeHTML(f)}</span>`
+            : `<span class="badge badge-ok">${escapeHTML(f)}</span>`;
+        return `<tr>
+          <td>${escapeHTML(rec.date)} ${escapeHTML(rec.time)}</td>
+          <td>${escapeHTML(rec.id)}</td>
+          <td><strong>${escapeHTML(rec.name)}</strong></td>
+          <td>${escapeHTML(rec.area)}</td>
+          <td>${escapeHTML(rec.routine)}</td>
+          <td>${badge}</td>
+          <td><span class="muted">${escapeHTML(rec.origin || (pending.some(p => p.rid === rec.rid) ? "Por enviar" : "—"))}</span></td>
+        </tr>`;
+      }).join("");
 }
 
 document.getElementById("filter-date").addEventListener("change", renderAttendanceHistory);
 document.getElementById("filter-area").addEventListener("change", renderAttendanceHistory);
 
-document.getElementById("btn-export-attendance").addEventListener("click", () => {
-  if (attendance.length === 0) {
-    showToast("No hay registros de asistencia para exportar.");
-    return;
-  }
-  const rows = [
-    ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Rutina", "Bienestar"],
-    ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, r.routine, r.feeling || "Bien"])
-  ];
-  exportExcelWorkbook([{ name: "Historial", rows }], `historial_pausas_activas_${todayISO()}.xlsx`);
-});
-
-document.getElementById("btn-clear-history").addEventListener("click", () => {
-  if (!confirm("¿Seguro que deseas borrar todo el historial de asistencia?")) return;
-  attendance = [];
+document.getElementById("btn-clear-history").addEventListener("click", async () => {
+  if (!confirm("¿Seguro que deseas borrar TODO el historial de asistencia?\n\nSe borrará también en Google Sheets y en todos los dispositivos. Esta acción no se puede deshacer.")) return;
+  setSyncState(true, "Borrando historial compartido...");
+  let ok = false;
+  try { const r = await apiPost({ action: "clearAttendance" }); ok = Boolean(r && r.ok); } catch {}
+  setSyncState(false);
+  attendance = []; pending = [];
   saveJSON(STORAGE_KEYS.ATTENDANCE, attendance);
+  saveJSON(STORAGE_KEYS.PENDING, pending);
   refreshAll();
-  showToast("Historial limpiado.");
+  showToast(ok ? "Historial borrado en la hoja y en todos los dispositivos." : "Historial borrado solo en este dispositivo.");
 });
 
-// ==========================================
-// ADMIN: GESTIÓN DE PERSONAL
-// ==========================================
+// ---------- Personal ----------
 function renderStaff() {
   const query = document.getElementById("staff-search").value.trim().toLowerCase();
   const tbody = document.getElementById("staff-table-body");
-  tbody.innerHTML = "";
+  const filtered = staff.filter(p =>
+    String(p.id).toLowerCase().includes(query) ||
+    String(p.name).toLowerCase().includes(query) ||
+    String(p.area).toLowerCase().includes(query));
 
-  const filtered = staff.filter(p =>p.id.toLowerCase().includes(query) ||
-    p.name.toLowerCase().includes(query) ||
-    p.area.toLowerCase().includes(query)
-  );
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4"class="muted">No hay personal registrado aún. Sube un archivo CSV o agrega manualmente.</td></tr>`;
-  } else {
-    filtered.forEach(p => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+  tbody.innerHTML = filtered.length === 0
+    ? `<tr><td colspan="5" class="muted">No hay personal registrado aún. Sube un archivo Excel/CSV o agrega manualmente.</td></tr>`
+    : filtered.map(p => `<tr>
         <td>${escapeHTML(p.id)}</td>
         <td><strong>${escapeHTML(p.name)}</strong></td>
         <td>${escapeHTML(p.area)}</td>
-        <td><button class="btn btn-danger-outline btn-sm"data-del-id="${escapeHTML(p.id)}">Eliminar</button></td>
-      `;
-      tbody.appendChild(tr);
+        <td>${p.medical ? `<span class="badge badge-alert" title="${escapeHTML(p.medical)}">Con restricción</span>` : "—"}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" data-edit-id="${escapeHTML(p.id)}">Editar</button>
+          <button class="btn btn-danger-outline btn-sm" data-del-id="${escapeHTML(p.id)}">Eliminar</button>
+        </td>
+      </tr>`).join("");
+
+  tbody.querySelectorAll("[data-edit-id]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const p = findPerson(btn.dataset.editId);
+      if (!p) return;
+      document.getElementById("staff-id").value = p.id;
+      document.getElementById("staff-name").value = p.name;
+      document.getElementById("staff-area").value = p.area;
+      document.getElementById("staff-medical").value = p.medical || "";
+      document.getElementById("staff-id").scrollIntoView({ behavior: "smooth", block: "center" });
     });
-  }
+  });
 
   tbody.querySelectorAll("[data-del-id]").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const id = btn.dataset.delId;
-      staff = staff.filter(p =>p.id !== id);
+      if (!confirm(`¿Eliminar a este colaborador del listado en todos los dispositivos?`)) return;
+      staff = staff.filter(p => String(p.id) !== String(id));
       saveJSON(STORAGE_KEYS.STAFF, staff);
+      staffDirty = true;
+      localStorage.setItem(STORAGE_KEYS.STAFF_DIRTY, "1");
       refreshAll();
-      showToast("Colaborador eliminado.");
+      setSyncState(true, "Actualizando personal en la base compartida...");
+      const ok = await pushStaff([id]);
+      setSyncState(false);
+      refreshAll();
+      showToast(ok ? "Colaborador eliminado en todos los dispositivos." : "Eliminado localmente. Se subirá cuando haya conexión.");
     });
   });
 
@@ -1084,316 +1229,425 @@ function renderStaff() {
 
 document.getElementById("staff-search").addEventListener("input", renderStaff);
 
-document.getElementById("form-add-staff").addEventListener("submit", e => {
+document.getElementById("form-add-staff").addEventListener("submit", async e => {
   e.preventDefault();
   const id = document.getElementById("staff-id").value.trim();
   const name = document.getElementById("staff-name").value.trim();
-  const area = document.getElementById("staff-area").value.trim();
+  const area = document.getElementById("staff-area").value.trim() || "Operaciones";
+  const medical = document.getElementById("staff-medical").value.trim();
   if (!id || !name) return;
 
-  const existing = staff.findIndex(p =>p.id === id);
-  if (existing >= 0) {
-    staff[existing] = { id, name, area };
-    showToast("Colaborador actualizado.");
-  } else {
-    staff.push({ id, name, area });
-    showToast("Colaborador agregado.");
-  }
+  const pos = staff.findIndex(p => String(p.id) === id);
+  if (pos >= 0) staff[pos] = { id, name, area, medical };
+  else staff.push({ id, name, area, medical });
+
   saveJSON(STORAGE_KEYS.STAFF, staff);
-  syncStaffToGoogleSheets();
+  staffDirty = true;
+  localStorage.setItem(STORAGE_KEYS.STAFF_DIRTY, "1");
   e.target.reset();
   refreshAll();
+
+  setSyncState(true, "Guardando personal en la base compartida...");
+  const ok = await pushStaff();
+  setSyncState(false);
+  refreshAll();
+  showToast(ok ? "Colaborador guardado. Ya aparece en todos los celulares."
+               : "Guardado en este dispositivo. Se subirá cuando haya conexión.");
 });
 
 document.getElementById("csv-file-input").addEventListener("change", e => {
   const file = e.target.files[0];
   if (!file) return;
-
   const isExcel = /\.(xlsx|xls)$/i.test(file.name);
-  const processRows = (rows) => {
-    let added = 0;
-    let updated = 0;
 
+  const processRows = async rows => {
+    let added = 0, updated = 0;
     rows.forEach((cols, idx) => {
       if (!Array.isArray(cols) || cols.length < 2) return;
       const c0 = String(cols[0] ?? "").trim();
       const c1 = String(cols[1] ?? "").trim();
-      const c2 = String(cols[2] ?? "Operaciones").trim() || "Operaciones";
+      const c2 = String(cols[2] ?? "").trim() || "Operaciones";
+      const c3 = String(cols[3] ?? "").trim();
       if (!c0 || !c1) return;
-      if (idx === 0 && /documento|cedula|id|codigo/i.test(c0)) return;
-
-      const pos = staff.findIndex(p =>p.id === c0);
-      if (pos >= 0) {
-        staff[pos] = { id: c0, name: c1, area: c2 };
-        updated++;
-      } else {
-        staff.push({ id: c0, name: c1, area: c2 });
-        added++;
-      }
+      if (idx === 0 && /documento|cedula|cédula|^id$|codigo|código/i.test(c0)) return;
+      const pos = staff.findIndex(p => String(p.id) === c0);
+      if (pos >= 0) { staff[pos] = { id: c0, name: c1, area: c2, medical: c3 }; updated++; }
+      else { staff.push({ id: c0, name: c1, area: c2, medical: c3 }); added++; }
     });
 
     saveJSON(STORAGE_KEYS.STAFF, staff);
-    syncStaffToGoogleSheets();
-    const fb = document.getElementById("upload-feedback");
-    fb.textContent = `Carga completada: ${added} nuevos y ${updated} actualizados.`;
-    fb.classList.remove("hidden");
+    staffDirty = true;
+    localStorage.setItem(STORAGE_KEYS.STAFF_DIRTY, "1");
     e.target.value = "";
     refreshAll();
+
+    const fb = document.getElementById("upload-feedback");
+    fb.classList.remove("hidden");
+    fb.textContent = `Procesado: ${added} nuevos y ${updated} actualizados. Subiendo a la base compartida...`;
+
+    setSyncState(true, "Subiendo listado de personal a Google Sheets...");
+    const ok = await pushStaff();
+    setSyncState(false);
+    refreshAll();
+
+    fb.textContent = ok
+      ? `Carga completada: ${added} nuevos y ${updated} actualizados. Total ${staff.length} colaboradores disponibles en TODOS los dispositivos.`
+      : `Carga guardada en este dispositivo (${staff.length} colaboradores). Sin conexión con Google Sheets: se subirá al reconectar.`;
+    fb.style.background = ok ? "#ecfdf5" : "#fff7ed";
+    fb.style.color = ok ? "#065f46" : "#9a3412";
+    fb.style.borderColor = ok ? "#a7f3d0" : "#fed7aa";
   };
 
+  const reader = new FileReader();
   if (isExcel && typeof XLSX !== "undefined") {
-    const reader = new FileReader();
     reader.onload = ev => {
       const wb = XLSX.read(new Uint8Array(ev.target.result), { type: "array" });
-      const firstSheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-      processRows(rows);
+      processRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false }));
     };
     reader.readAsArrayBuffer(file);
   } else {
-    const reader = new FileReader();
     reader.onload = ev => {
-      const text = String(ev.target.result || "").replace(/^\uFEFF/, "");
-      const lines = text.split(/\r?\n/).map(l =>l.trim()).filter(Boolean);
-      const rows = lines.map(line => {
+      const text = String(ev.target.result || "").replace(/^﻿/, "");
+      processRows(text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(line => {
         const sep = line.includes(";") ? ";" : ",";
-        return line.split(sep).map(c =>c.replace(/^"|"$/g, "").trim());
-      });
-      processRows(rows);
+        return line.split(sep).map(c => c.replace(/^"|"$/g, "").trim());
+      }));
     };
     reader.readAsText(file, "UTF-8");
   }
 });
 
 document.getElementById("btn-download-template").addEventListener("click", () => {
-  const rows = [
-    ["Documento", "Nombre", "Area"],
-    ["10203040", "Carlos Perez", "Bodega"],
-    ["10506070", "Maria Gomez", "Produccion"],
-    ["10809010", "Juan Rodriguez", "Logistica"]
-  ];
-  exportExcelWorkbook([{ name: "Personal", rows }], "plantilla_personal_pausas.xlsx");
+  exportExcelWorkbook([{ name: "Personal", rows: [
+    ["Documento", "Nombre", "Area", "Restriccion"],
+    ["10203040", "Carlos Perez", "Bodega", ""],
+    ["10506070", "Maria Gomez", "Produccion", "Embarazo: evitar sentadilla y cargas"],
+    ["10809010", "Juan Rodriguez", "Logistica", ""]
+  ]}], "plantilla_personal_pausas.xlsx");
 });
 
 document.getElementById("btn-export-staff").addEventListener("click", () => {
-  const rows = [["Documento", "Nombre", "Area"], ...staff.map(p => [p.id, p.name, p.area])];
-  exportExcelWorkbook([{ name: "Personal", rows }], "personal_pausas_activas.xlsx");
+  exportExcelWorkbook([{ name: "Personal", rows: [
+    ["Documento", "Nombre", "Area", "Restriccion"],
+    ...staff.map(p => [p.id, p.name, p.area, p.medical || ""])
+  ]}], "personal_pausas_activas.xlsx");
 });
 
-// ==========================================
-// ADMIN: CATÁLOGO DE RUTINAS
-// ==========================================
+// ---------- Catálogo de rutinas ----------
 function renderRoutines() {
   const grid = document.getElementById("routines-grid");
+  const slots = getSlots();
   grid.innerHTML = "";
-
-  ROUTINES.forEach(r => {
+  ROUTINES.forEach((r, i) => {
     const card = document.createElement("div");
     card.className = "card routine-card";
     card.innerHTML = `
       <div>
-        <span class="badge badge-active">${r.schedule}</span>
-        <h3 style="margin:0.6rem 0 0.25rem;">${r.name}</h3>
-        <p class="muted"style="margin:0;">${r.focus}</p>
+        <span class="badge badge-active">Franja ${escapeHTML(slots[i])} · ${r.exercises.length} ejercicios</span>
+        <h3 style="margin:0.6rem 0 0.25rem;">${escapeHTML(r.name)}</h3>
+        <p class="muted" style="margin:0;">${escapeHTML(r.focus)}</p>
         <ul class="routine-ex-list">
           ${r.exercises.map(ex => `
             <li class="routine-ex-item">
               <div class="routine-thumb">${getExerciseIllustration(ex.svgKey)}</div>
               <div>
-                <strong>${ex.name}</strong> <span class="muted">(${ex.duration}s)</span>
-                <span class="routine-ergo-meta"> <strong>Mueve:</strong> ${ex.moving}</span>
-                <span class="routine-ergo-meta"> <strong>Evita:</strong> ${ex.prevents}</span>
+                <strong>${escapeHTML(ex.name)}</strong> <span class="muted">(${ex.duration}s)</span>
+                <span class="routine-ergo-meta"><strong>Mueve:</strong> ${escapeHTML(ex.moving)}</span>
+                <span class="routine-ergo-meta"><strong>Evita:</strong> ${escapeHTML(ex.prevents)}</span>
               </div>
-            </li>
-          `).join("")}
+            </li>`).join("")}
         </ul>
-      </div>
-    `;
+      </div>`;
     grid.appendChild(card);
   });
-
-  if (typeof initMiniCanvases === "function") {
-    initMiniCanvases();
-  }
+  if (typeof initMiniCanvases === "function") initMiniCanvases();
 }
 
-// ==========================================
-// HELPERS EXCEL (.XLSX) Y CSV
-// ==========================================
+// ==========================================================
+// EXPORTACIONES E INFORMES
+// ==========================================================
 function exportExcelWorkbook(sheets, filename) {
   if (typeof XLSX !== "undefined") {
     const wb = XLSX.utils.book_new();
-    sheets.forEach(s => {
-      const ws = XLSX.utils.aoa_to_sheet(s.rows);
-      XLSX.utils.book_append_sheet(wb, ws, s.name.slice(0, 31));
-    });
+    sheets.forEach(s => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s.rows), s.name.slice(0, 31)));
     XLSX.writeFile(wb, filename);
     showToast(`Archivo Excel generado: ${filename}`);
   } else {
-    // Respaldo CSV si no hay conexión a internet para cargar SheetJS
-    downloadCSV(sheets[0].rows, filename.replace(/\.xlsx$/i, ".csv"));
+    const rows = sheets[0].rows;
+    const csv = "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    downloadFile(csv, filename.replace(/\.xlsx$/i, ".csv"), "text/csv;charset=utf-8;");
   }
-}
-
-function downloadCSV(rows, filename) {
-  const csv = "\uFEFF" + rows.map(r =>r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
-  downloadFile(csv, filename, "text/csv;charset=utf-8;");
 }
 
 function downloadFile(content, filename, mime) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(new Blob([content], { type: mime }));
   const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 
-function refreshAll() {
-  renderStaff();
-  renderCompliance();
-  renderAttendanceHistory();
-  updateTimerUI();
-}
+document.getElementById("btn-export-compliance").addEventListener("click", () => {
+  const dateStr = document.getElementById("comp-date").value || jornadaISO();
+  const rows = buildComplianceRows(dateStr);
+  if (!rows.length) { showToast("No hay datos para exportar."); return; }
+  exportExcelWorkbook([{ name: "Cumplimiento", rows: [
+    ["Fecha", "Cedula", "Nombre", "Area", "Pausas_Hechas", "Ultima_Pausa", "Estado"],
+    ...rows.map(r => [dateStr, r.id, r.name, r.area, r.count, r.lastTime, r.count > 0 ? "SI CUMPLIO" : "NO HA HECHO"])
+  ]}], `cumplimiento_pausas_${dateStr}.xlsx`);
+});
 
-// ==========================================
-// ADMIN: CONFIGURACIÓN, EMPRESA, QR Y RESPALDO
-// ==========================================
+document.getElementById("btn-export-attendance").addEventListener("click", () => {
+  if (!attendance.length) { showToast("No hay registros de asistencia para exportar."); return; }
+  exportExcelWorkbook([{ name: "Historial", rows: [
+    ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Rutina", "Bienestar", "Segmento", "Origen"],
+    ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, r.routine, r.feeling || "Bien", r.segment || "", r.origin || ""])
+  ]}], `historial_pausas_activas_${jornadaISO()}.xlsx`);
+});
+
+document.getElementById("btn-export-excel-full").addEventListener("click", () => {
+  const dateStr = document.getElementById("comp-date").value || jornadaISO();
+  const compRows = buildComplianceRows(dateStr);
+  const dayRecs = attendance.filter(r => r.date === dateStr);
+  const areaRows = buildAreaSummary(compRows, dayRecs);
+  const segRecs = recordsInRange(dateStr, document.getElementById("segment-range").value)
+    .filter(r => (r.feeling || "").toLowerCase().includes("molestia"));
+
+  exportExcelWorkbook([
+    { name: "Cumplimiento", rows: [
+      ["Fecha", "Cedula", "Nombre", "Area", "Pausas_Hechas", "Ultima_Pausa", "Estado"],
+      ...compRows.map(r => [dateStr, r.id, r.name, r.area, r.count, r.lastTime, r.count > 0 ? "SI CUMPLIO" : "NO HA HECHO"])]},
+    { name: "Resumen_por_Area", rows: [
+      ["Area", "Total_Personal", "Si_Cumplieron", "Pendientes", "Porcentaje_Cumplimiento", "Alertas_Molestia"],
+      ...areaRows.map(a => [a.area, a.total, a.yes, a.no, `${a.pct}%`, a.pain])]},
+    { name: "Morbilidad_Sentida", rows: [
+      ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Segmento_Corporal"],
+      ...segRecs.map(r => [r.date, r.time, r.id, r.name, r.area, r.segment || "Sin especificar"])]},
+    { name: "Historial_Detallado", rows: [
+      ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Rutina", "Bienestar", "Segmento", "Origen"],
+      ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, r.routine, r.feeling || "Bien", r.segment || "", r.origin || ""])]}
+  ], `reporte_completo_sst_${dateStr}.xlsx`);
+});
+
+document.getElementById("btn-monthly-report").addEventListener("click", () => {
+  const mes = document.getElementById("report-month").value || jornadaISO().slice(0, 7);
+  const recs = attendance.filter(r => String(r.date).startsWith(mes));
+  if (!recs.length) { showToast("No hay registros en el mes seleccionado."); return; }
+
+  const meta = Number(settings.dailyGoal) || 3;
+  const dias = [...new Set(recs.map(r => r.date))].sort();
+
+  // Cumplimiento promedio de los días con actividad
+  const pcts = dias.map(d => {
+    const ids = new Set(recs.filter(r => r.date === d).map(r => String(r.id)));
+    return staff.length ? Math.round(ids.size * 100 / staff.length) : 0;
+  });
+  const promedio = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : 0;
+
+  // Por área
+  const areas = {};
+  staff.forEach(p => {
+    const a = p.area || "Sin área";
+    areas[a] = areas[a] || { total: 0, pausas: 0, molestias: 0 };
+    areas[a].total++;
+  });
+  recs.forEach(r => {
+    const a = r.area || "Sin área";
+    areas[a] = areas[a] || { total: 0, pausas: 0, molestias: 0 };
+    areas[a].pausas++;
+    if ((r.feeling || "").toLowerCase().includes("molestia")) areas[a].molestias++;
+  });
+
+  const segs = {};
+  recs.filter(r => (r.feeling || "").toLowerCase().includes("molestia"))
+      .forEach(r => { const s = r.segment || "Sin especificar"; segs[s] = (segs[s] || 0) + 1; });
+
+  const porPersona = {};
+  recs.forEach(r => { porPersona[String(r.id)] = (porPersona[String(r.id)] || 0) + 1; });
+  const sinPausas = staff.filter(p => !porPersona[String(p.id)]);
+
+  abrirImpresion(`
+    <h1>${escapeHTML(settings.companyName || "Pausas Activas SST")}</h1>
+    <h2>Informe mensual del programa de pausas activas · ${escapeHTML(mes)}</h2>
+    <div class="kpis">
+      <div class="kpi"><b>${promedio}%</b><span>Cumplimiento promedio</span></div>
+      <div class="kpi"><b>${recs.length}</b><span>Pausas registradas</span></div>
+      <div class="kpi"><b>${dias.length}</b><span>Días con actividad</span></div>
+      <div class="kpi"><b>${Object.values(segs).reduce((a, b) => a + b, 0)}</b><span>Molestias reportadas</span></div>
+    </div>
+
+    <h3>Cumplimiento por área</h3>
+    <table class="grid"><thead><tr><th>Área</th><th>Personal</th><th>Pausas del mes</th><th>Promedio por persona</th><th>Molestias</th></tr></thead><tbody>
+      ${Object.entries(areas).sort((a, b) => b[1].pausas - a[1].pausas).map(([a, v]) =>
+        `<tr><td>${escapeHTML(a)}</td><td>${v.total}</td><td>${v.pausas}</td><td>${v.total ? (v.pausas / v.total).toFixed(1) : "0"}</td><td>${v.molestias}</td></tr>`).join("")}
+    </tbody></table>
+
+    <h3>Morbilidad sentida por segmento corporal</h3>
+    ${Object.keys(segs).length ? `<table class="grid"><thead><tr><th>Segmento</th><th>Reportes</th></tr></thead><tbody>
+      ${Object.entries(segs).sort((a, b) => b[1] - a[1]).map(([s, n]) => `<tr><td>${escapeHTML(s)}</td><td>${n}</td></tr>`).join("")}
+    </tbody></table>` : `<p>Sin molestias reportadas en el periodo.</p>`}
+
+    <h3>Personal sin pausas registradas en el mes (${sinPausas.length})</h3>
+    ${sinPausas.length ? `<table class="grid"><thead><tr><th>Cédula</th><th>Nombre</th><th>Área</th></tr></thead><tbody>
+      ${sinPausas.map(p => `<tr><td>${escapeHTML(p.id)}</td><td>${escapeHTML(p.name)}</td><td>${escapeHTML(p.area)}</td></tr>`).join("")}
+    </tbody></table>` : `<p>Todo el personal registró al menos una pausa.</p>`}
+
+    <p class="pie">Meta definida: ${meta} pausas por colaborador al día. Informe generado el ${new Date().toLocaleString("es-CO")}.
+    Las molestias reportadas constituyen morbilidad sentida y son insumo del sistema de vigilancia epidemiológica de desórdenes músculo-esqueléticos.</p>
+    <div class="firmas"><div>Responsable SG-SST</div><div>Representante COPASST</div></div>
+  `, `Informe pausas activas ${mes}`);
+});
+
+// ==========================================================
+// CONFIGURACIÓN
+// ==========================================================
 function applyBranding() {
   document.getElementById("brand-title").textContent = settings.companyName || "Pausas Activas SST";
   const logoWrap = document.getElementById("brand-logo-wrap");
-  if (settings.logoDataUrl) {
-    logoWrap.innerHTML = `<img src="${settings.logoDataUrl}"alt="Logo empresa" />`;
-  } else {
-    logoWrap.textContent = "SST";
-  }
+  logoWrap.innerHTML = settings.logoDataUrl ? `<img src="${settings.logoDataUrl}" alt="Logo empresa" />` : "";
+  if (!settings.logoDataUrl) logoWrap.textContent = "SST";
 
-  // Cargar valores en formulario de configuración
   document.getElementById("cfg-company").value = settings.companyName || "";
   document.getElementById("cfg-daily-goal").value = String(settings.dailyGoal || 3);
   document.getElementById("cfg-sheets-url").value = settings.sheetsUrl || "";
   document.getElementById("cfg-allow-skip").checked = Boolean(settings.allowSkip);
+  document.getElementById("cfg-min-gap").value = String(Number(settings.minGapMinutes) || 0);
+  document.getElementById("cfg-shift-start").value = String(Number(settings.shiftStartHour) || 0);
+  document.getElementById("cfg-sst-email").value = settings.sstEmail || "";
+  getSlots().forEach((s, i) => {
+    const el = document.getElementById(`cfg-slot-${i}`);
+    if (el) el.value = s;
+  });
 
-  const defaultUrl = settings.qrUrl || (window.location.href.startsWith("http") ? window.location.href : "https://tu-usuario.github.io/pausas-activas/");
-  document.getElementById("cfg-qr-url").value = defaultUrl;
-  updateQRPreview(defaultUrl);
+  const qr = settings.qrUrl || (location.href.startsWith("http") ? location.href.split("?")[0] : "https://sstfritosjs.github.io/pausasactivas/");
+  document.getElementById("cfg-qr-url").value = qr;
+  updateQRPreview(qr);
 }
 
 function updateQRPreview(url) {
-  const cleanUrl = (url || "").trim();
-  if (!cleanUrl) return;
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(cleanUrl)}`;
-  document.getElementById("qr-image").src = qrSrc;
-  document.getElementById("qr-caption").textContent = cleanUrl;
+  const clean = (url || "").trim();
+  if (!clean) return;
+  document.getElementById("qr-image").src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(clean)}`;
+  document.getElementById("qr-caption").textContent = clean;
 }
 
 document.getElementById("cfg-logo-file").addEventListener("change", e => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
+  reader.onload = async ev => {
     settings.logoDataUrl = ev.target.result;
     saveJSON(STORAGE_KEYS.SETTINGS, settings);
     applyBranding();
+    await pushConfig();
     showToast("Logo actualizado.");
   };
   reader.readAsDataURL(file);
 });
 
-document.getElementById("form-settings").addEventListener("submit", e => {
+document.getElementById("form-settings").addEventListener("submit", async e => {
   e.preventDefault();
   settings.companyName = document.getElementById("cfg-company").value.trim() || "Pausas Activas SST";
   settings.dailyGoal = Number(document.getElementById("cfg-daily-goal").value) || 3;
   settings.sheetsUrl = document.getElementById("cfg-sheets-url").value.trim();
   settings.allowSkip = document.getElementById("cfg-allow-skip").checked;
+  settings.minGapMinutes = Number(document.getElementById("cfg-min-gap").value) || 0;
+  settings.shiftStartHour = Number(document.getElementById("cfg-shift-start").value) || 0;
+  settings.sstEmail = document.getElementById("cfg-sst-email").value.trim();
+
+  const nuevos = [];
+  for (let i = 0; i < ROUTINES.length; i++) {
+    const v = (document.getElementById(`cfg-slot-${i}`).value || "").trim();
+    nuevos.push(/^\d{2}:\d{2}$/.test(v) ? v : DEFAULT_SLOTS[i]);
+  }
+  settings.slots = nuevos;
+
   saveJSON(STORAGE_KEYS.SETTINGS, settings);
   applyBranding();
-  showToast("Configuración guardada correctamente.");
+  renderSchedule();
+  renderRoutines();
+  refreshAll();
+
+  setSyncState(true, "Guardando configuración compartida...");
+  const ok = await pushConfig();
+  setSyncState(false);
+  showToast(ok ? "Configuración guardada para todos los dispositivos." : "Configuración guardada solo en este dispositivo.");
 });
 
-document.getElementById("form-change-pass").addEventListener("submit", e => {
+document.getElementById("btn-test-conn").addEventListener("click", async () => {
+  const fb = document.getElementById("conn-feedback");
+  const url = document.getElementById("cfg-sheets-url").value.trim();
+  if (url) settings.sheetsUrl = url;
+  fb.classList.remove("hidden");
+  fb.textContent = "Probando conexión con Google Sheets...";
+  fb.style.background = "#f8fafc"; fb.style.color = "#334155"; fb.style.borderColor = "#e2e8f0";
+  try {
+    const r = await apiGet({ action: "ping" });
+    if (!r || !r.ok) throw new Error((r && r.error) || "sin-respuesta");
+    fb.textContent = `Conexión correcta. La hoja tiene ${r.staff} colaboradores cargados.`;
+    fb.style.background = "#ecfdf5"; fb.style.color = "#065f46"; fb.style.borderColor = "#a7f3d0";
+    saveJSON(STORAGE_KEYS.SETTINGS, settings);
+    await syncNow(true);
+  } catch (err) {
+    fb.textContent = `No hay conexión con la hoja (${String(err.message || err)}). Verifica que publicaste el Apps Script como "Aplicación web" con acceso "Cualquier persona" y que la URL termina en /exec.`;
+    fb.style.background = "#fef2f2"; fb.style.color = "#991b1b"; fb.style.borderColor = "#fecaca";
+  }
+});
+
+document.getElementById("form-change-pass").addEventListener("submit", async e => {
   e.preventDefault();
   const cur = document.getElementById("cfg-pass-current").value.trim();
   const next = document.getElementById("cfg-pass-new").value.trim();
   const conf = document.getElementById("cfg-pass-confirm").value.trim();
-  const activePass = (settings.adminPass || ADMIN_PASS).trim();
   const fb = document.getElementById("pass-feedback");
 
-  const showPassMsg = (msg, isError = false) => {
-    if (fb) {
-      fb.textContent = msg;
-      fb.classList.remove("hidden");
-      fb.style.background = isError ? "#fef2f2" : "#ecfdf5";
-      fb.style.color = isError ? "#991b1b" : "#065f46";
-      fb.style.borderColor = isError ? "#fecaca" : "#a7f3d0";
-    }
-    showToast(msg);
+  const msg = (t, err = false) => {
+    fb.textContent = t;
+    fb.classList.remove("hidden");
+    fb.style.background = err ? "#fef2f2" : "#ecfdf5";
+    fb.style.color = err ? "#991b1b" : "#065f46";
+    fb.style.borderColor = err ? "#fecaca" : "#a7f3d0";
+    showToast(t);
   };
 
-  if (cur !== activePass) {
-    showPassMsg("La clave actual es incorrecta.", true);
-    return;
-  }
-  if (next.length < 4) {
-    showPassMsg("La nueva clave debe tener al menos 4 caracteres.", true);
-    return;
-  }
-  if (next !== conf) {
-    showPassMsg("La confirmación no coincide con la nueva clave.", true);
-    return;
-  }
+  if (!(await checkAdminPass(cur))) return msg("La clave actual es incorrecta.", true);
+  if (next.length < 4) return msg("La nueva clave debe tener al menos 4 caracteres.", true);
+  if (next !== conf) return msg("La confirmación no coincide con la nueva clave.", true);
 
-  settings.adminPass = next;
+  settings.adminPassHash = await sha256Hex(next);
   saveJSON(STORAGE_KEYS.SETTINGS, settings);
+  setAdminHash(settings.adminPassHash);
   e.target.reset();
-  showPassMsg("Clave de administrador actualizada correctamente. Úsala en tu próximo ingreso.", false);
+
+  const ok = await pushConfig();
+  msg(ok ? "Clave actualizada en todos los dispositivos. Úsala en tu próximo ingreso."
+         : "Clave actualizada solo en este dispositivo (sin conexión con la hoja).");
 });
 
-document.getElementById("btn-gen-qr").addEventListener("click", () => {
+document.getElementById("btn-gen-qr").addEventListener("click", async () => {
   const url = document.getElementById("cfg-qr-url").value.trim();
   if (!url) return;
   settings.qrUrl = url;
   saveJSON(STORAGE_KEYS.SETTINGS, settings);
   updateQRPreview(url);
+  await pushConfig();
   showToast("Código QR actualizado.");
 });
 
 document.getElementById("btn-print-qr").addEventListener("click", () => {
   const url = document.getElementById("cfg-qr-url").value.trim();
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(url)}`;
-  const win = window.open("", "_blank");
-  if (!win) return;
-  win.document.write(`
-    <!DOCTYPE html><html lang="es"><head><title>Cartel QR - Pausas Activas</title>
-    <style>body{font-family:Segoe UI,sans-serif;text-align:center;padding:40px;color:#0f172a;}
-      .box{border:4px solid #0f766e;border-radius:20px;padding:35px;max-width:520px;margin:0 auto;}
-      h1{color:#0f766e;margin:0 0 8px;font-size:28px;}
-      h2{margin:0 0 20px;font-size:20px;color:#ea580c;}
-      img{width:280px;height:280px;margin:15px 0;}
-      p{font-size:16px;color:#334155;}
-    </style></head><body>
-      <div class="box">
-        <h1>${escapeHTML(settings.companyName || "Pausas Activas SST")}</h1>
-        <h2>PAUSAS ACTIVAS CADA 2 HORAS </h2>
-        <p>Escanea el código QR con tu celular, ingresa tu <strong>número de cédula</strong>y realiza tus 5 minutos de pausa activa.</p>
-        <img src="${qrSrc}"alt="QR Pausas Activas" />
-        <p style="font-size:13px;color:#64748b;">${escapeHTML(url)}</p>
-      </div>
-      <script>window.onload = () =>window.print();</script>
-    </body></html>
-  `);
-  win.document.close();
+  abrirImpresion(`
+    <div style="text-align:center;border:4px solid #0f766e;border-radius:18px;padding:28px;">
+      <h1 style="font-size:26px;">${escapeHTML(settings.companyName || "Pausas Activas SST")}</h1>
+      <h2 style="color:#ea580c;font-size:19px;">PAUSAS ACTIVAS · 5 MINUTOS</h2>
+      <p style="font-size:15px;">Escanea el código QR con tu celular, ingresa tu <strong>número de cédula</strong> y realiza tu pausa activa.</p>
+      <img style="width:280px;height:280px;" src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(url)}" alt="QR" />
+      <p style="font-size:12px;color:#64748b;">${escapeHTML(url)}</p>
+    </div>`, "Cartel QR Pausas Activas");
 });
 
 document.getElementById("btn-backup-export").addEventListener("click", () => {
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    staff,
-    attendance,
-    settings
-  };
-  downloadFile(JSON.stringify(payload, null, 2), `respaldo_pausas_sst_${todayISO()}.json`, "application/json");
+  downloadFile(JSON.stringify({ exportedAt: new Date().toISOString(), staff, attendance, settings }, null, 2),
+    `respaldo_pausas_sst_${jornadaISO()}.json`, "application/json");
   showToast("Respaldo descargado.");
 });
 
@@ -1401,7 +1655,7 @@ document.getElementById("btn-backup-import").addEventListener("change", e => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
+  reader.onload = async ev => {
     try {
       const data = JSON.parse(ev.target.result);
       if (Array.isArray(data.staff)) staff = data.staff;
@@ -1410,51 +1664,81 @@ document.getElementById("btn-backup-import").addEventListener("change", e => {
       saveJSON(STORAGE_KEYS.STAFF, staff);
       saveJSON(STORAGE_KEYS.ATTENDANCE, attendance);
       saveJSON(STORAGE_KEYS.SETTINGS, settings);
-      applyBranding();
+      staffDirty = true;
+      localStorage.setItem(STORAGE_KEYS.STAFF_DIRTY, "1");
+      applyBranding(); refreshAll();
+      setSyncState(true, "Subiendo respaldo a la base compartida...");
+      await pushStaff();
+      setSyncState(false);
       refreshAll();
-      showToast("Respaldo restaurado correctamente.");
-    } catch {
-      showToast("Archivo de respaldo inválido.");
-    }
+      showToast("Respaldo restaurado y sincronizado.");
+    } catch { showToast("Archivo de respaldo inválido."); }
     e.target.value = "";
   };
   reader.readAsText(file, "UTF-8");
 });
 
-// ==========================================
-// CONSEJOS RÁPIDOS DE MANIPULACIÓN DE CARGAS Y SST
-// ==========================================
+// ==========================================================
+// CONSEJOS SST
+// ==========================================================
 const SST_TIPS = [
   "Manipulación de cargas: Antes de levantar un objeto, evalúa su peso y tamaño. Si supera los 25 kg (hombres) o 12.5 kg (mujeres), pide ayuda o usa una ayuda mecánica.",
   "Técnica de levantamiento: Separa los pies al ancho de los hombros, flexiona las rodillas (no la espalda) y haz la fuerza con las piernas al subir.",
-  "Carga pegada al cuerpo: Mantén siempre la caja u objeto lo más cerca posible de tu abdomen; alejar la carga multiplica la presión sobre tu columna lumbar.",
+  "Carga pegada al cuerpo: Mantén la caja u objeto lo más cerca posible de tu abdomen; alejar la carga multiplica la presión sobre tu columna lumbar.",
   "Cero giros de cintura: Nunca gires el tronco mientras sostienes peso. Da pasos cortos con los pies para girar todo el cuerpo en bloque.",
-  "Agarre seguro: Sujeta la carga firmemente con toda la palma de la mano y no solo con la punta de los dedos para evitar lesiones en muñecas y caídas de objetos.",
-  "Planifica el recorrido: Antes de levantar una carga, verifica que el camino esté despejado, seco y sin obstáculos para evitar tropiezos o caídas.",
-  "Usa ayudas mecánicas: Siempre que haya carretillas, estibadores o carros disponibles, úsalos. Empujar una carga es mucho más seguro para la espalda que halarla.",
-  "Descarga controlada: Al dejar una carga en el piso, vuelve a doblar las rodillas con la espalda recta; evita inclinarte bruscamente o soltar el peso de golpe.",
-  "Altura segura: Evita levantar o ubicar cargas pesadas por encima del nivel de los hombros; usa escaleras seguras o pide apoyo para evitar lesiones de manguito rotador.",
+  "Agarre seguro: Sujeta la carga con toda la palma de la mano y no solo con la punta de los dedos, para evitar lesiones de muñeca y caídas de objetos.",
+  "Planifica el recorrido: Antes de levantar una carga, verifica que el camino esté despejado, seco y sin obstáculos.",
+  "Usa ayudas mecánicas: Si hay carretillas, estibadores o carros disponibles, úsalos. Empujar una carga es más seguro para la espalda que halarla.",
+  "Descarga controlada: Al dejar una carga en el piso, vuelve a doblar las rodillas con la espalda recta; evita soltar el peso de golpe.",
+  "Altura segura: Evita ubicar cargas pesadas por encima del nivel de los hombros; usa escaleras seguras o pide apoyo.",
   "Trabajo de pie prolongado: Alterna el peso del cuerpo entre una pierna y otra, y apoya brevemente un pie sobre un reposapiés si tu puesto lo permite.",
-  "Hidratación constante: Toma un vaso de agua al terminar tu pausa activa para mantener los músculos oxigenados, prevenir calambres y reducir la fatiga.",
-  "Uso de EPP: Verifica que tus guantes, botas de seguridad y demás Elementos de Protección Personal estén en buen estado antes de iniciar tu labor.",
-  "Orden y aseo (5S): Mantén tu área y los pasillos libres de cajas, cables o derrames. Un lugar ordenado previene la mayoría de los accidentes por caídas.",
-  "Reporte oportuno: Si identificas un piso resbaloso, una estiba rota o una herramienta dañada, repórtalo de inmediato a SST antes de que cause un accidente.",
-  "Respeta tus pausas cada 2 horas: Cinco minutos de estiramiento reducen hasta en un 40% la fatiga muscular acumulada al final del turno.",
-  "Escucha a tu cuerpo: Si sientes dolor punzante en la espalda, hormigueo en manos o mareo, detén la actividad y avisa de inmediato a tu jefe o a SST.",
-  "Descanso y concentración: La fatiga disminuye tus reflejos. Si manejas cargas o equipos y te sientes muy agotado, haz una micro-pausa y recupérate.",
+  "Hidratación constante: Toma un vaso de agua al terminar tu pausa activa para mantener los músculos oxigenados y prevenir calambres.",
+  "Uso de EPP: Verifica que tus guantes, botas de seguridad y demás elementos de protección estén en buen estado antes de iniciar tu labor.",
+  "Orden y aseo (5S): Mantén tu área y los pasillos libres de cajas, cables o derrames. Un lugar ordenado previene la mayoría de las caídas.",
+  "Reporte oportuno: Si identificas un piso resbaloso, una estiba rota o una herramienta dañada, repórtalo de inmediato a SST.",
+  "Respeta tus pausas: Cinco minutos de estiramiento ayudan a reducir la fatiga muscular acumulada al final del turno.",
+  "Escucha a tu cuerpo: Si sientes dolor punzante en la espalda, hormigueo en manos o mareo, detén la actividad y avisa a tu jefe o a SST.",
+  "Descanso y concentración: La fatiga disminuye tus reflejos. Si manejas cargas o equipos y te sientes agotado, haz una micro-pausa.",
   "Trabajo en equipo: Al cargar objetos largos o pesados entre dos personas, coordinen el conteo antes de levantar y bajar al mismo tiempo."
 ];
 let currentTipIdx = 0;
-
 document.getElementById("btn-next-tip").addEventListener("click", () => {
   currentTipIdx = (currentTipIdx + 1) % SST_TIPS.length;
   document.getElementById("sst-tip-text").textContent = SST_TIPS[currentTipIdx];
 });
 
-// ==========================================
+// ==========================================================
 // INICIALIZACIÓN
-// ==========================================
+// ==========================================================
+function refreshAll() {
+  renderStaff();
+  renderCompliance();
+  renderAttendanceHistory();
+  renderSchedule();
+  renderSyncInfo();
+}
+
+// App instalable y uso sin señal
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => {
+      reg.addEventListener("updatefound", () => {
+        const nuevo = reg.installing;
+        if (!nuevo) return;
+        nuevo.addEventListener("statechange", () => {
+          if (nuevo.state === "installed" && navigator.serviceWorker.controller) {
+            document.getElementById("update-banner").classList.remove("hidden");
+          }
+        });
+      });
+    }).catch(() => {});
+  });
+}
+document.getElementById("btn-reload-app").addEventListener("click", () => location.reload());
+
+document.getElementById("report-month").value = jornadaISO().slice(0, 7);
 applyBranding();
 renderRoutines();
 refreshAll();
-loadFromGoogleSheets();
+renderSyncInfo(staff.length ? null : "Descargando base de datos compartida...", "warn");
+syncNow(true).then(() => renderCedulaPreview());

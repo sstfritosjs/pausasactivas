@@ -1233,3 +1233,333 @@ select {
     text-align: center;
   }
 }
+
+/* ==========================================
+   SINCRONIZACIÓN Y FOTOS DE EJERCICIOS (v2)
+   ========================================== */
+.sync-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.sync-info {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  flex: 1;
+  min-width: 180px;
+  line-height: 1.35;
+}
+
+.sync-info[data-state="ok"] { color: #15803d; }
+.sync-info[data-state="warn"] { color: #b45309; }
+.sync-info[data-state="error"] { color: #b91c1c; }
+
+.sync-info::before {
+  content: "●";
+  margin-right: 0.35rem;
+  font-size: 0.7rem;
+}
+
+/* Foto real del ejercicio dentro del reproductor */
+.exercise-visual.has-photo {
+  background: #ffffff;
+  height: 330px;
+  padding: 0.35rem;
+}
+
+.exercise-visual .ex-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+  display: block;
+  background: #f8fafc;
+}
+
+/* Miniatura con foto en el catálogo de rutinas */
+.routine-thumb .thumb-photo {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 8px;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .exercise-visual.has-photo {
+    height: 300px;
+    max-width: 240px;
+  }
+
+  .sync-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sync-row .btn {
+    width: 100%;
+  }
+}
+
+/* ==========================================
+   v3 · HORARIOS, HISTORIAL DEL TRABAJADOR,
+   MORBILIDAD SENTIDA Y AVISOS MÉDICOS
+   ========================================== */
+
+/* --- Franjas horarias --- */
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.schedule-slot {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-subtle);
+  font-size: 0.84rem;
+}
+
+.schedule-slot.is-now {
+  background: #f0fdfa;
+  border-color: #5eead4;
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.schedule-slot.is-next { border-color: #fed7aa; }
+
+.slot-time { font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+.slot-name { color: var(--text-secondary); line-height: 1.25; }
+
+.slot-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.4px;
+}
+
+.slots-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.slot-field {
+  flex: 1;
+  min-width: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.slot-field input {
+  padding: 0.45rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.inline-select {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  background: #fff;
+}
+
+/* --- Avisos médicos y de espera --- */
+.medical-banner {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-left: 4px solid var(--accent);
+  color: #9a3412;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.87rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.medical-note { color: #c2410c; font-weight: 700; }
+.cooldown-note { color: #b45309; font-weight: 700; }
+
+/* --- Historial del trabajador --- */
+.worker-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.85rem 1rem;
+  background: var(--primary-soft);
+  border: 1px solid #99f6e4;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+.worker-identity .muted { font-size: 0.85rem; }
+
+.section-sub {
+  font-size: 0.95rem;
+  margin: 1.4rem 0 0.6rem;
+  color: var(--primary);
+}
+
+.week-chart {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  align-items: end;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.85rem 0.6rem 0.6rem;
+}
+
+.week-col { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+
+.week-bar-wrap {
+  width: 100%;
+  height: 92px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.week-bar {
+  width: 68%;
+  min-height: 4px;
+  background: #cbd5e1;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.3s ease;
+}
+
+.week-bar.is-goal { background: var(--primary); }
+
+.week-n { font-size: 0.8rem; font-weight: 800; color: var(--text); }
+.week-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+
+/* --- Morbilidad sentida por segmento --- */
+.segment-chart { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.6rem; }
+
+.seg-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 34px;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.seg-name { color: var(--text-secondary); font-weight: 600; }
+
+.seg-bar-wrap {
+  background: #e2e8f0;
+  border-radius: 999px;
+  height: 14px;
+  overflow: hidden;
+}
+
+.seg-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #fb923c, #dc2626);
+  border-radius: 999px;
+  min-width: 6px;
+}
+
+.seg-n { text-align: right; color: var(--danger); }
+
+.segment-alerts { margin-top: 1rem; }
+
+.alert-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid var(--danger);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  font-size: 0.86rem;
+  color: #7f1d1d;
+}
+
+.alert-box ul { margin: 0.4rem 0 0.5rem; padding-left: 1.1rem; }
+.alert-box .muted { font-size: 0.78rem; }
+
+/* --- Segmentos corporales en el modal --- */
+.segment-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn-segment {
+  padding: 0.8rem 0.5rem;
+  border-radius: 11px;
+  border: 2px solid #fed7aa;
+  background: #fff7ed;
+  color: #9a3412;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.btn-segment:active { transform: scale(0.98); }
+.btn-segment:hover { background: #ffedd5; }
+
+/* --- Aviso de versión nueva --- */
+.update-banner {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  background: #0f172a;
+  color: #fff;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  z-index: 90;
+  box-shadow: var(--shadow-lg);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* --- Ajustes móviles --- */
+@media (max-width: 640px) {
+  .seg-row { grid-template-columns: 96px 1fr 28px; font-size: 0.8rem; }
+  .week-bar-wrap { height: 72px; }
+  .schedule-slot { grid-template-columns: 46px 1fr auto; font-size: 0.79rem; }
+  .segment-buttons { grid-template-columns: 1fr; }
+  .worker-identity { font-size: 0.96rem; }
+}
+
+/* Etiquetas largas dentro de tablas: que ajusten en vez de desbordarse */
+.data-table .badge {
+  white-space: normal;
+  line-height: 1.25;
+  max-width: 100%;
+  text-align: left;
+}
+
+.data-table td { vertical-align: top; }
+
+@media (max-width: 640px) {
+  .data-table .badge { font-size: 0.68rem; padding: 0.22rem 0.5rem; }
+  .data-table th,
+  .data-table td { padding: 0.5rem 0.45rem; }
+}

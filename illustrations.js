@@ -476,19 +476,74 @@ class HumanExerciseCanvas {
 
 let activeCanvasAnimator = null;
 
-function mountExerciseAnimator(container, exerciseKey) {
-  if (activeCanvasAnimator) {
-    activeCanvasAnimator.setExercise(exerciseKey);
-    activeCanvasAnimator.setPaused(false);
-    return activeCanvasAnimator;
-  }
+// ==========================================
+// FOTOS REALES DE LOS EJERCICIOS (carpeta img/)
+// Si un ejercicio no tiene foto, se usa automáticamente
+// la animación anatómica en canvas de arriba.
+// ==========================================
+const EXERCISE_PHOTOS = {
+  talones: "img/talones.jpg",
+  lumbar: "img/lumbar.jpg",
+  cuadriceps: "img/cuadriceps.jpg",
+  hombros: "img/hombros.jpg",
+  cuello: "img/cuello.jpg",
+  pectoral: "img/pectoral.jpg",
+  cadera: "img/cadera.jpg",
+  isquios: "img/isquios.jpg",
+  gemelos: "img/gemelos.jpg",
+  muneca: "img/muneca.jpg",
+  manos: "img/manos.jpg"
+};
+
+const failedPhotos = new Set();
+
+function hasPhoto(key) {
+  return Boolean(EXERCISE_PHOTOS[key]) && !failedPhotos.has(key);
+}
+
+function mountCanvasAnimator(container, exerciseKey) {
   container.innerHTML = `<canvas width="260" height="260" style="width:100%;height:100%;display:block;border-radius:10px;"></canvas>`;
   const canvas = container.querySelector("canvas");
   activeCanvasAnimator = new HumanExerciseCanvas(canvas, exerciseKey);
   return activeCanvasAnimator;
 }
 
+function mountExerciseAnimator(container, exerciseKey) {
+  if (hasPhoto(exerciseKey)) {
+    if (activeCanvasAnimator) {
+      activeCanvasAnimator.destroy();
+      activeCanvasAnimator = null;
+    }
+    container.innerHTML = "";
+    container.classList.add("has-photo");
+    const img = document.createElement("img");
+    img.className = "ex-photo";
+    img.alt = "Demostración del ejercicio";
+    img.loading = "eager";
+    img.decoding = "async";
+    img.src = EXERCISE_PHOTOS[exerciseKey];
+    img.addEventListener("error", () => {
+      failedPhotos.add(exerciseKey);
+      container.classList.remove("has-photo");
+      mountCanvasAnimator(container, exerciseKey);
+    });
+    container.appendChild(img);
+    return null;
+  }
+
+  container.classList.remove("has-photo");
+  if (activeCanvasAnimator) {
+    activeCanvasAnimator.setExercise(exerciseKey);
+    activeCanvasAnimator.setPaused(false);
+    return activeCanvasAnimator;
+  }
+  return mountCanvasAnimator(container, exerciseKey);
+}
+
 function getExerciseIllustration(key) {
+  if (hasPhoto(key)) {
+    return `<img class="thumb-photo" src="${EXERCISE_PHOTOS[key]}" alt="" loading="lazy" />`;
+  }
   return `<canvas class="mini-ex-canvas" data-ex-key="${key}" width="96" height="96" style="width:48px;height:48px;border-radius:8px;display:block;"></canvas>`;
 }
 
@@ -496,9 +551,17 @@ function initMiniCanvases() {
   document.querySelectorAll(".mini-ex-canvas").forEach(canvas => {
     const key = canvas.dataset.exKey;
     const anim = new HumanExerciseCanvas(canvas, key);
-    // Dibujar un frame representativo estático en miniaturas para ahorrar CPU
+    // Un solo frame representativo en las miniaturas para ahorrar CPU
     anim.t = 0.7;
     anim.drawScene();
     anim.destroy();
   });
 }
+
+// Precarga las fotos para que no parpadeen al cambiar de ejercicio
+window.addEventListener("load", () => {
+  Object.values(EXERCISE_PHOTOS).forEach(src => {
+    const i = new Image();
+    i.src = src;
+  });
+});
