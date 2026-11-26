@@ -272,7 +272,8 @@ let settings = loadJSON(STORAGE_KEYS.SETTINGS, {
   logoDataUrl: "",
   sheetsUrl: "",
   allowSkip: false,
-  qrUrl: ""
+  qrUrl: "",
+  adminPass: ADMIN_PASS
 });
 let currentBlockIndex = Number(localStorage.getItem(STORAGE_KEYS.BLOCK_INDEX) || 0) % ROUTINES.length;
 
@@ -438,7 +439,8 @@ document.getElementById("btn-cancel-admin").addEventListener("click", () => {
 document.getElementById("form-admin-login").addEventListener("submit", e => {
   e.preventDefault();
   const val = document.getElementById("admin-pass-input").value;
-  if (val === ADMIN_PASS) {
+  const currentPass = settings.adminPass || ADMIN_PASS;
+  if (val === currentPass) {
     document.getElementById("admin-modal").classList.add("hidden");
     enterAdminMode();
   } else {
@@ -1242,6 +1244,32 @@ document.getElementById("form-settings").addEventListener("submit", e => {
   saveJSON(STORAGE_KEYS.SETTINGS, settings);
   applyBranding();
   showToast("Configuración guardada correctamente.");
+});
+
+document.getElementById("form-change-pass").addEventListener("submit", e => {
+  e.preventDefault();
+  const cur = document.getElementById("cfg-pass-current").value;
+  const next = document.getElementById("cfg-pass-new").value;
+  const conf = document.getElementById("cfg-pass-confirm").value;
+  const activePass = settings.adminPass || ADMIN_PASS;
+
+  if (cur !== activePass) {
+    showToast("La clave actual es incorrecta.");
+    return;
+  }
+  if (next.length < 4) {
+    showToast("La nueva clave debe tener al menos 4 caracteres.");
+    return;
+  }
+  if (next !== conf) {
+    showToast("La confirmación no coincide con la nueva clave.");
+    return;
+  }
+
+  settings.adminPass = next;
+  saveJSON(STORAGE_KEYS.SETTINGS, settings);
+  e.target.reset();
+  showToast("Clave de administrador actualizada correctamente.");
 });
 
 document.getElementById("btn-gen-qr").addEventListener("click", () => {

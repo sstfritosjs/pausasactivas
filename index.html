@@ -370,7 +370,26 @@
               <label class="toggle-label"style="margin:0.4rem 0 0.8rem;">
                 <input type="checkbox"id="cfg-allow-skip" />Permitir saltar ejercicios con botón "Siguiente" (desactivado por defecto para evitar trampas)
               </label>
-              <button type="submit"class="btn btn-primary">Guardar Configuración</button>
+              <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+            </form>
+
+            <hr class="divider" />
+
+            <h3>Cambiar Clave de Administrador</h3>
+            <form id="form-change-pass" class="stack-form">
+              <div class="form-group">
+                <label for="cfg-pass-current">Clave actual</label>
+                <input type="password" id="cfg-pass-current" required />
+              </div>
+              <div class="form-group">
+                <label for="cfg-pass-new">Nueva clave (mínimo 4 caracteres)</label>
+                <input type="password" id="cfg-pass-new" minlength="4" required />
+              </div>
+              <div class="form-group">
+                <label for="cfg-pass-confirm">Confirmar nueva clave</label>
+                <input type="password" id="cfg-pass-confirm" minlength="4" required />
+              </div>
+              <button type="submit" class="btn btn-secondary btn-sm">Actualizar Clave</button>
             </form>
 
             <hr class="divider" />
@@ -428,7 +447,7 @@
       <form id="form-admin-login">
         <div class="form-group">
           <label for="admin-pass-input">Clave de acceso</label>
-          <input type="password"id="admin-pass-input"placeholder="Clave por defecto: admin123"required />
+          <input type="password" id="admin-pass-input" placeholder="Ingresa la clave de administrador" required />
         </div>
         <div id="admin-login-error"class="error-text hidden">Clave incorrecta. Intenta nuevamente.</div>
         <div class="modal-actions">
