@@ -773,7 +773,7 @@ function loadExercise(idx) {
   document.getElementById("btn-ex-toggle").textContent = "Pausar";
   document.getElementById("player-progress-fill").style.width = `${(idx / activeRoutine.exercises.length) * 100}%`;
 
-  const showSkip = Boolean(settings.allowSkip);
+  const showSkip = Boolean(settings.allowSkip) && !groupMode;
   document.getElementById("btn-ex-prev").classList.toggle("hidden", !showSkip);
   document.getElementById("btn-ex-next").classList.toggle("hidden", !showSkip);
   // Quien tiene restricción médica siempre puede omitir un ejercicio
@@ -2443,13 +2443,6 @@ document.getElementById("btn-start-group").addEventListener("click", () => {
   groupLeaderName = leerLiderGrupal();
   document.getElementById("group-setup").classList.add("hidden");
   startGuidedBreak({ routineIndex: groupRoutineIndex });
-});
-
-document.getElementById("btn-group-skip-to-list").addEventListener("click", () => {
-  if (!staff.length) { showToast("Aún no hay personal cargado en la base."); return; }
-  groupRoutineIndex = Number(document.getElementById("group-block").value) || 0;
-  groupLeaderName = leerLiderGrupal();
-  abrirListaGrupal();
 });
 
 function abrirListaGrupal() {

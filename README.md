@@ -1,4 +1,4 @@
-# Pausas Activas SST · v7
+# Pausas Activas SST · v8
 
 App web para GitHub Pages con **base de datos compartida en Google Sheets**, **modo grupal con firma de cada asistente**, **dos turnos de 12 horas**, historial propio para cada trabajador y vigilancia de molestias osteomusculares. Funciona **sin señal** y se instala en el celular como aplicación.
 
@@ -83,12 +83,18 @@ Pensado para una tablet, un computador o un televisor en planta.
 
 1. En la pantalla principal: **Modo grupal · dirigido por un líder**. Pide clave (ver abajo).
 2. El líder elige la **rutina** (viene marcada la que corresponde a la hora), opcionalmente **quién dirige** y el **área** que participa.
-3. **Iniciar pausa grupal**: la rutina corre en pantalla con voz y sonido, igual que la individual pero sin pedir cédula. El botón **Pantalla completa** la deja lista para proyectar.
+3. **Iniciar pausa grupal**: la rutina corre completa en pantalla con voz y sonido, sin pedir cédula y sin posibilidad de saltarla. El botón **Pantalla completa** la deja lista para proyectar.
 4. Al terminar aparece **¿Quiénes hicieron la pausa?**: la lista del personal con casillas grandes, buscador, filtro por área y **Marcar todos los visibles**.
 5. El botón naranja **!** de cada fila sirve para registrar que esa persona reportó **molestia** y en qué segmento corporal.
 6. **Guardar asistencia**: se crea un registro por persona, todos en un solo envío a Google Sheets.
 
-También está el atajo **"Ya la hicimos · solo marcar asistencia"**, para cuando la pausa se hizo sin la pantalla.
+### La pausa es obligatoria
+**No hay forma de marcar asistencia sin hacer la pausa.** La lista aparece únicamente cuando la rutina llega al final:
+
+- No existe atajo para saltar directo a la lista.
+- En modo grupal **no se pueden saltar ejercicios**, aunque en Configuración esté activado "Permitir saltar ejercicios con Siguiente". Esa opción sigue valiendo para las pausas individuales.
+- Si el líder cierra la rutina a medias, no se registra nada.
+- Lo único que queda disponible durante la rutina es **Pausar**, para esperar a alguien.
 
 ### Lo que protege el dato
 - Quien ya registró una pausa dentro del intervalo mínimo aparece **bloqueado y gris**, con los minutos que le faltan. No se puede marcar ni con "Marcar todos". Así el modo grupal no sirve para inflar el cumplimiento.
@@ -188,7 +194,7 @@ img/   (11 fotos · OBLIGATORIA)      README.md
 
 **Settings → Pages → Deploy from a branch → `main` / `root`.**
 
-> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v7`.
+> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v8`.
 
 ---
 

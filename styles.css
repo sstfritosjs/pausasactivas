@@ -1939,3 +1939,16 @@ select {
   .last-acta { flex-direction: column; align-items: stretch; }
   .last-acta .btn { width: 100%; }
 }
+
+/* Aviso de que la pausa es obligatoria antes de marcar asistencia */
+.aviso-obligatoria {
+  margin: 0.8rem 0 0;
+  padding: 0.65rem 0.85rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: #9a3412;
+  line-height: 1.4;
+}
