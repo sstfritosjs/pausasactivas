@@ -1,4 +1,4 @@
-# Pausas Activas SST · v6
+# Pausas Activas SST · v7
 
 App web para GitHub Pages con **base de datos compartida en Google Sheets**, **modo grupal con firma de cada asistente**, **dos turnos de 12 horas**, historial propio para cada trabajador y vigilancia de molestias osteomusculares. Funciona **sin señal** y se instala en el celular como aplicación.
 
@@ -14,6 +14,36 @@ Sube la carpeta `img/` completa (11 archivos .jpg) a la raíz del repositorio, a
 ---
 
 ---
+
+---
+
+---
+
+## Planilla mensual firmada
+
+**Administrador → Historial → Planilla mensual firmada.** Es el documento consolidado que suele pedir el auditor: una fila por colaborador y una columna por cada día del mes.
+
+| Columna | Qué muestra |
+|---|---|
+| Días del mes (1–31) | **•** si ese día hizo una pausa, o el **número** si hizo varias. Los domingos van sombreados |
+| Días | Cuántos días distintos asistió en el mes |
+| Pausas | Total de pausas del mes |
+| Firmadas | Cuántas de esas pausas quedaron con firma |
+| Firma | Imagen de la **última firma registrada** del colaborador en el mes |
+
+- Sale en **hoja apaisada** para que quepan los 31 días; desde el diálogo de impresión eliges *Guardar como PDF*.
+- Incluye también a **quien no hizo ninguna pausa**, con sus contadores en cero: la ausencia queda documentada.
+- Última fila: **total de pausas por día**, para ver de un vistazo los días flojos del mes.
+- Pie con firmas de **Responsable SG-SST, COPASST y Gerencia**.
+
+> La columna Firma es la última del mes, no una por día: no caben 31 firmas en una fila. El detalle día por día, con la firma de esa jornada, está en las **actas de asistencia** (misma pestaña, arriba).
+
+Los documentos mensuales quedaron separados por propósito:
+
+| Botón | Para qué | Orientación |
+|---|---|---|
+| **Informe mensual de indicadores** | Gerencia: cumplimiento, áreas, turnos, morbilidad sentida | Vertical |
+| **Planilla mensual firmada** | Auditoría: quién asistió, qué días y su firma | Apaisada |
 
 ---
 
@@ -158,7 +188,7 @@ img/   (11 fotos · OBLIGATORIA)      README.md
 
 **Settings → Pages → Deploy from a branch → `main` / `root`.**
 
-> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v6`.
+> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v7`.
 
 ---
 

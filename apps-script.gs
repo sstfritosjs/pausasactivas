@@ -370,6 +370,24 @@ function handle_(params, body) {
     return json_({ ok: true, action: 'ping', staff: readStaff_().length, serverTime: new Date().toISOString() });
   }
 
+  /* Solo los RegistroID que tienen firma en un rango de fechas.
+     Payload minimo: sirve para contar firmas del mes sin bajar las imagenes. */
+  if (action === 'getSignedRids') {
+    var shf = sheet_(SH_SIGN, HEAD_SIGN);
+    var ultima = shf.getLastRow();
+    var rids = [];
+    if (ultima > 1) {
+      var vals = shf.getRange(2, 1, ultima - 1, 3).getValues();   // RegistroID, Sesion, Fecha
+      var desde = txt_(data.from || params.from);
+      var hasta = txt_(data.to || params.to);
+      for (var k = 0; k < vals.length; k++) {
+        var f = txt_(vals[k][2]);
+        if ((!desde || f >= desde) && (!hasta || f <= hasta)) rids.push(txt_(vals[k][0]));
+      }
+    }
+    return json_({ ok: true, rids: rids });
+  }
+
   if (action === 'getSignatures') {
     return json_({ ok: true, signatures: getSignatures_(data.session || params.session, data.rids || []) });
   }

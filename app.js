@@ -1086,13 +1086,14 @@ document.getElementById("btn-print-constancia").addEventListener("click", () => 
 // ==========================================================
 // IMPRESIÓN (constancias e informes, sin librerías externas)
 // ==========================================================
-function abrirImpresion(contenidoHTML, titulo) {
+function abrirImpresion(contenidoHTML, titulo, apaisado) {
   const win = window.open("", "_blank");
   if (!win) { showToast("Permite las ventanas emergentes para generar el documento."); return; }
   const logo = settings.logoDataUrl ? `<img class="logo" src="${settings.logoDataUrl}" alt="" />` : "";
   win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${escapeHTML(titulo)}</title>
   <style>
-    body{font-family:Segoe UI,Arial,sans-serif;color:#0f172a;padding:34px;max-width:900px;margin:0 auto;}
+    @page{size:A4 ${apaisado ? "landscape" : "portrait"};margin:${apaisado ? "8mm" : "13mm"};}
+    body{font-family:Segoe UI,Arial,sans-serif;color:#0f172a;padding:${apaisado ? "10px" : "34px"};max-width:${apaisado ? "none" : "900px"};margin:0 auto;}
     .logo{height:52px;float:right;}
     h1{color:#0f766e;font-size:21px;margin:0 0 2px;}
     h2{font-size:16px;margin:0 0 16px;color:#334155;font-weight:600;}
@@ -1112,6 +1113,20 @@ function abrirImpresion(contenidoHTML, titulo) {
     .celda-firma{text-align:center;padding:2px 6px;}
     img.firma{max-height:40px;max-width:200px;display:block;margin:0 auto;}
     .sin-firma{color:#b91c1c;font-size:10px;font-weight:bold;letter-spacing:.3px;}
+    table.planilla{font-size:8.5px;}
+    table.planilla th,table.planilla td{padding:2px 3px;}
+    table.planilla th.dnum{width:13px;font-size:6.5px;text-align:center;padding:1px 0;}
+    table.planilla td.dia{width:13px;text-align:center;font-size:8px;padding:1px 0;color:#94a3b8;}
+    table.planilla td.dia.on{background:#d1fae5;font-weight:bold;color:#065f46;}
+    table.planilla .dom{background:#f1f5f9;}
+    table.planilla th.dom{background:#e2e8f0;}
+    table.planilla td.nom{width:120px;font-weight:600;}
+    table.planilla td.tot{text-align:center;font-weight:bold;}
+    table.planilla td.celda-firma{width:116px;}
+    table.planilla img.firma{max-height:24px;max-width:110px;}
+    table.planilla tr.totales td{background:#f0fdfa;font-weight:bold;}
+    .leyenda{font-size:9px;color:#475569;margin:6px 0 10px;}
+    .leyenda b{color:#065f46;}
     @media print{ body{padding:0;} }
   </style></head><body>${logo}${contenidoHTML}
   <script>window.onload=()=>window.print();<\/script></body></html>`);
@@ -2784,6 +2799,146 @@ async function imprimirActa(sesion, fecha) {
     <div class="firmas"><div>${escapeHTML(base.leader || "Líder que dirigió la pausa")}</div><div>Responsable SG-SST</div></div>
   `, `Acta de asistencia ${base.date}`);
 }
+
+// ---------- Planilla mensual firmada ----------
+function diasDelMes(mes) {
+  const [y, m] = mes.split("-").map(Number);
+  return new Date(y, m, 0).getDate();
+}
+
+async function obtenerFirmasPorRids(rids) {
+  if (!rids.length) return;
+  await obtenerFirmas(rids.map(rid => ({ rid })), "");
+}
+
+// RegistroID que tienen firma en el rango (sin descargar las imágenes)
+async function obtenerRidsFirmados(desde, hasta) {
+  const locales = new Set(Object.keys(signatures));
+  try {
+    const r = await apiGet({ action: "getSignedRids", from: desde, to: hasta });
+    if (r && r.ok && Array.isArray(r.rids)) {
+      r.rids.forEach(x => locales.add(x));
+    }
+  } catch {}
+  return locales;
+}
+
+async function generarPlanillaMensual() {
+  const mes = document.getElementById("report-month").value || jornadaISO().slice(0, 7);
+  const recs = attendance.filter(r => String(r.date).startsWith(mes));
+  if (!recs.length && !staff.length) { showToast("No hay datos para el mes seleccionado."); return; }
+
+  const nDias = diasDelMes(mes);
+  const [anio, mesNum] = mes.split("-").map(Number);
+  const esDomingo = d => new Date(anio, mesNum - 1, d).getDay() === 0;
+
+  const porPersona = new Map();
+  const nuevo = p => ({ id: p.id, name: p.name, area: p.area || "Sin área", dias: {}, rids: [], ultimo: null });
+
+  staff.forEach(p => porPersona.set(String(p.id), nuevo(p)));
+  recs.forEach(r => {
+    const k = String(r.id);
+    if (!porPersona.has(k)) porPersona.set(k, nuevo(r));
+    const it = porPersona.get(k);
+    it.dias[r.date] = (it.dias[r.date] || 0) + 1;
+    it.rids.push(r.rid);
+    if (!it.ultimo || `${r.date} ${r.time}` > `${it.ultimo.date} ${it.ultimo.time}`) it.ultimo = r;
+  });
+
+  setSyncState(true, "Recuperando las firmas del mes...");
+  const firmados = await obtenerRidsFirmados(`${mes}-01`, `${mes}-${pad2(nDias)}`);
+  await obtenerFirmasPorRids([...porPersona.values()].filter(x => x.ultimo).map(x => x.ultimo.rid).slice(0, 120));
+  setSyncState(false);
+
+  const filas = [...porPersona.values()].sort((a, b) =>
+    String(a.area).localeCompare(String(b.area)) || String(a.name).localeCompare(String(b.name)));
+
+  const cabeceraDias = Array.from({ length: nDias }, (_, i) =>
+    `<th class="dnum ${esDomingo(i + 1) ? "dom" : ""}">${i + 1}</th>`).join("");
+
+  const totalesPorDia = new Array(nDias).fill(0);
+  const meta = Number(settings.dailyGoal) || 5;
+
+  const cuerpo = filas.map((it, idx) => {
+    const celdas = Array.from({ length: nDias }, (_, i) => {
+      const iso = `${mes}-${pad2(i + 1)}`;
+      const n = it.dias[iso] || 0;
+      totalesPorDia[i] += n;
+      return `<td class="dia ${n ? "on" : ""} ${esDomingo(i + 1) ? "dom" : ""}">${n > 1 ? n : (n ? "•" : "")}</td>`;
+    }).join("");
+
+    const diasAsistidos = Object.keys(it.dias).length;
+    const pausas = Object.values(it.dias).reduce((a, b) => a + b, 0);
+    const conFirma = it.rids.filter(r => firmados.has(r)).length;
+    const firma = it.ultimo ? signatures[it.ultimo.rid] : "";
+
+    return `<tr>
+      <td class="tot">${idx + 1}</td>
+      <td class="nom">${escapeHTML(it.name)}</td>
+      <td>${escapeHTML(it.id)}</td>
+      <td>${escapeHTML(it.area)}</td>
+      ${celdas}
+      <td class="tot">${diasAsistidos}</td>
+      <td class="tot">${pausas}</td>
+      <td class="tot">${conFirma}</td>
+      <td class="celda-firma">${firma
+        ? `<img class="firma" src="${firma}" alt="Firma de ${escapeHTML(it.name)}" />`
+        : `<span class="sin-firma">Sin firma</span>`}</td>
+    </tr>`;
+  }).join("");
+
+  const totales = totalesPorDia.map((n, i) =>
+    `<td class="dia ${esDomingo(i + 1) ? "dom" : ""}">${n || ""}</td>`).join("");
+
+  const conAlgunaPausa = filas.filter(f => Object.keys(f.dias).length > 0).length;
+  const totalPausas = totalesPorDia.reduce((a, b) => a + b, 0);
+  const diasConActividad = totalesPorDia.filter(n => n > 0).length;
+
+  abrirImpresion(`
+    <h1>${escapeHTML(settings.companyName || "Pausas Activas SST")}</h1>
+    <h2>Planilla mensual de asistencia a pausas activas · ${escapeHTML(mes)}</h2>
+
+    <table class="datos">
+      <tr>
+        <td><b>Personal relacionado</b></td><td>${filas.length}</td>
+        <td><b>Participaron en el mes</b></td><td>${conAlgunaPausa}</td>
+        <td><b>Pausas registradas</b></td><td>${totalPausas}</td>
+        <td><b>Días con actividad</b></td><td>${diasConActividad}</td>
+        <td><b>Meta diaria</b></td><td>${meta} por jornada</td>
+      </tr>
+    </table>
+
+    <p class="leyenda"><b>•</b> = una pausa ese día · el número indica cuántas pausas hizo ese día ·
+    las columnas sombreadas son domingos · <b>Firmadas</b> es cuántas de sus pausas quedaron con firma ·
+    la columna <b>Firma</b> muestra la última firma registrada del colaborador en el mes.</p>
+
+    <table class="grid planilla">
+      <thead>
+        <tr>
+          <th>#</th><th>Nombre</th><th>Cédula</th><th>Área</th>
+          ${cabeceraDias}
+          <th>Días</th><th>Pausas</th><th>Firmadas</th><th>Firma</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${cuerpo}
+        <tr class="totales">
+          <td colspan="4">Total de pausas por día</td>
+          ${totales}
+          <td class="tot">—</td><td class="tot">${totalPausas}</td><td class="tot">—</td><td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="pie">Las firmas fueron capturadas digitalmente en el dispositivo al finalizar cada pausa activa.
+    El detalle día por día con la firma de cada jornada reposa en las actas de asistencia individuales.
+    Documento generado el ${new Date().toLocaleString("es-CO")} por el programa de pausas activas del SG-SST.</p>
+
+    <div class="firmas"><div>Responsable SG-SST</div><div>Representante COPASST</div><div>Gerencia</div></div>
+  `, `Planilla mensual ${mes}`, true);
+}
+
+document.getElementById("btn-monthly-sheet").addEventListener("click", generarPlanillaMensual);
 
 function renderActas() {
   const tbody = document.getElementById("acta-list-body");

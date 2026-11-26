@@ -3,15 +3,15 @@
  * Permite abrir y usar la app sin señal en planta o bodega.
  * Al cambiar archivos, sube CACHE_VERSION para forzar la actualización.
  * ========================================================== */
-const CACHE_VERSION = "pausas-sst-v6";
+const CACHE_VERSION = "pausas-sst-v7";
 
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=6",
-  "./illustrations.js?v=6",
-  "./routines.js?v=6",
-  "./app.js?v=6",
+  "./styles.css?v=7",
+  "./illustrations.js?v=7",
+  "./routines.js?v=7",
+  "./app.js?v=7",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
