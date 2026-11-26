@@ -1,6 +1,51 @@
-# Pausas Activas SST · v3
+# Pausas Activas SST · v4
 
-App web para GitHub Pages con **base de datos compartida en Google Sheets**, historial propio para cada trabajador y vigilancia de molestias osteomusculares. Funciona **sin señal** y se instala en el celular como aplicación.
+App web para GitHub Pages con **base de datos compartida en Google Sheets**, **dos turnos de 12 horas**, historial propio para cada trabajador y vigilancia de molestias osteomusculares. Funciona **sin señal** y se instala en el celular como aplicación.
+
+---
+
+## 🔴 PRIMERO: sube la carpeta `img/`
+
+En el despliegue actual **falta la carpeta `img/`**: por eso en los celulares sale el muñeco animado en vez de la foto real. La app lo resiste sin romperse, pero no estás viendo las fotos.
+
+Sube la carpeta `img/` completa (11 archivos .jpg) a la raíz del repositorio, al mismo nivel que `index.html`. Verifica abriendo:
+`https://sstfritosjs.github.io/pausasactivas/img/manos.jpg` — debe mostrar la foto, no un error 404.
+
+---
+
+## Los dos turnos de 12 horas
+
+El turno y la rutina **se deciden por la hora** en que el colaborador inicia su pausa. No hay que asignarle turno a nadie, así que **funciona igual aunque los turnos roten** cada semana.
+
+Configuración que viene por defecto (editable en **Administrador → Configuración**):
+
+| Turno | Inicio | Horas de pausa |
+|---|---|---|
+| Turno 1 · Día | 06:00 | 08:00 · 10:00 · 12:00 · 14:00 · 16:00 |
+| Turno 2 · Noche | 18:00 | 20:00 · 22:00 · 00:00 · 02:00 · 04:00 |
+
+- Las 4 rutinas **rotan en el orden de esas horas**: la 5.ª pausa vuelve al Bloque 1.
+- El botón **Generar cada 2 horas** llena las franjas solo, desde la hora de inicio del turno.
+- La **jornada arranca con el turno 1** (06:00): lo que un operario del turno noche registre a las 02:00 cuenta para la jornada del día anterior, no parte el cumplimiento en dos días.
+- Cada registro guarda su **Turno**, y hay tabla de cumplimiento por turno, filtro por turno en el historial y desglose por turno en el informe mensual y en el correo diario.
+- Si algún día vuelven a un solo turno, se cambia en **Turnos que maneja la empresa** sin perder la configuración del otro.
+
+---
+
+## El logo
+
+Antes no llegaba a los demás dispositivos porque el archivo original no cabe en una celda de Google Sheets. Ahora **se reduce y comprime automáticamente al subirlo** (queda en unos 10–25 KB) y viaja en la configuración compartida.
+
+- Se muestra **completo, sin recortar**, en un recuadro blanco que respeta su proporción.
+- En Configuración hay **vista previa** y botón **Quitar logo** (lo quita en todos los dispositivos).
+- En el celular, si hay logo, el nombre de la empresa pasa a dos líneas en vez de cortarse.
+- Recomendación: PNG con fondo transparente y formato horizontal.
+
+---
+
+## Respiración y cuidado
+
+Volvió el tercer recuadro por ejercicio que tenía tu versión anterior y que no venía en los archivos que me pasaste. Está escrito para **los 24 ejercicios**: cuándo inhalar y exhalar, y la precaución concreta de ese movimiento ("el talón de atrás no se levanta", "nunca empujes la cabeza con la mano", "si sientes hormigueo, suelta de inmediato").
 
 ---
 
@@ -31,13 +76,13 @@ A partir de ahí recibes cada día cerca de las 5:00 p. m. un correo con el % de
 ### 4. Comprueba
 **Administrador → Configuración y QR → Probar conexión.** Debe decir *"Conexión correcta…"*.
 
-El script administra tres hojas y no toca tus datos anteriores:
+El script agrega la columna **Turno** al final de `Registros`, así que **tus registros actuales no se desalinean** ni se pierden. Administra tres hojas:
 
 | Hoja | Columnas |
 |---|---|
 | `Personal` | Documento · Nombre · Area · **Restriccion** |
-| `Registros` | Fecha · Hora · Cedula · Nombre · Area · Rutina · Bienestar · **Segmento** · **Origen** · RegistroID |
-| `Config` | Parámetros compartidos (empresa, meta, franjas, clave cifrada, correo SST) |
+| `Registros` | Fecha · Hora · Cedula · Nombre · Area · Rutina · Bienestar · Segmento · Origen · RegistroID · **Turno** |
+| `Config` | Parámetros compartidos (empresa, logo, meta, turnos, clave cifrada, correo SST) |
 
 ---
 
@@ -48,12 +93,12 @@ Sube a la rama `main`:
 ```
 index.html   styles.css   app.js   routines.js   illustrations.js
 manifest.json   sw.js   icon-192.png   icon-512.png
-img/   (11 fotos)        README.md
+img/   (11 fotos · OBLIGATORIA)      README.md
 ```
 
 **Settings → Pages → Deploy from a branch → `main` / `root`.**
 
-> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada.
+> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v4`.
 
 ---
 

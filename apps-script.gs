@@ -19,7 +19,7 @@ var MAX_RECORDS = 6000;
 var HORA_RESUMEN = 17;                 // Hora del correo de cierre de turno
 
 var HEAD_STAFF = ['Documento', 'Nombre', 'Area', 'Restriccion'];
-var HEAD_ATT   = ['Fecha', 'Hora', 'Cedula', 'Nombre', 'Area', 'Rutina', 'Bienestar', 'Segmento', 'Origen', 'RegistroID'];
+var HEAD_ATT   = ['Fecha', 'Hora', 'Cedula', 'Nombre', 'Area', 'Rutina', 'Bienestar', 'Segmento', 'Origen', 'RegistroID', 'Turno'];
 var HEAD_CFG   = ['Clave', 'Valor'];
 
 /* ---------------- Utilidades ---------------- */
@@ -75,6 +75,30 @@ function hora_(v) {
 function fechaDe_(d)  { return Utilities.formatDate(d, tz_(), 'yyyy-MM-dd'); }
 function horaDe_(d)   { return Utilities.formatDate(d, tz_(), 'HH:mm'); }
 
+function minutosDe_(hhmm) {
+  var p = String(hhmm || '00:00').split(':');
+  return (Number(p[0]) || 0) * 60 + (Number(p[1]) || 0);
+}
+
+/* Turnos configurados desde la app (uno o dos de 12 horas) */
+function turnosDe_(cfg) {
+  var lista = [];
+  try { lista = JSON.parse(cfg.shiftsJson || '[]'); } catch (e) { lista = []; }
+  if (!lista.length) lista = [{ name: 'Turno unico', start: '00:00' }];
+  return (txt_(cfg.shiftMode) === 'dos' && lista.length > 1) ? lista.slice(0, 2) : lista.slice(0, 1);
+}
+
+/* El turno se deduce de la hora: sirve aunque los turnos roten entre semanas */
+function turnoDe_(d, cfg) {
+  var turnos = turnosDe_(cfg);
+  if (turnos.length < 2) return txt_(turnos[0].name) || 'Turno unico';
+  var m = d.getHours() * 60 + d.getMinutes();
+  var s1 = minutosDe_(turnos[0].start);
+  var s2 = minutosDe_(turnos[1].start);
+  var enPrimero = s1 < s2 ? (m >= s1 && m < s2) : !(m >= s2 && m < s1);
+  return txt_(enPrimero ? turnos[0].name : turnos[1].name);
+}
+
 /* Fecha de jornada: si el turno arranca a las 06:00, lo ocurrido a la 01:00
    pertenece a la jornada del dia anterior. */
 function jornadaISO_(d, inicioHora) {
@@ -105,7 +129,7 @@ function readAttendance_() {
       return {
         date: txt_(r[0]), time: hora_(r[1]), id: txt_(r[2]), name: txt_(r[3]),
         area: txt_(r[4]), routine: txt_(r[5]), feeling: txt_(r[6]) || 'Bien',
-        segment: txt_(r[7]), origin: txt_(r[8]), rid: txt_(r[9])
+        segment: txt_(r[7]), origin: txt_(r[8]), rid: txt_(r[9]), shift: txt_(r[10])
       };
     })
     .filter(function (r) { return r.id && r.date; });
@@ -203,7 +227,8 @@ function addAttendance_(rec, cfg) {
     jornadaISO_(real, cfg && cfg.shiftStartHour),
     horaDe_(real),
     txt_(rec.id), txt_(rec.name), txt_(rec.area), txt_(rec.routine),
-    txt_(rec.feeling) || 'Bien', txt_(rec.segment), origen, rid
+    txt_(rec.feeling) || 'Bien', txt_(rec.segment), origen, rid,
+    turnoDe_(real, cfg || {})
   ]]);
   return true;
 }
@@ -351,9 +376,23 @@ function resumenDelDia_(fechaISO) {
     }
   });
 
+  var porTurno = turnosDe_(cfg).map(function (t) {
+    var propios = registros.filter(function (r) { return txt_(r.shift) === txt_(t.name); });
+    var personas = {};
+    propios.forEach(function (r) { personas[r.id] = 1; });
+    return {
+      nombre: txt_(t.name),
+      inicio: txt_(t.start),
+      pausas: propios.length,
+      personas: Object.keys(personas).length,
+      molestias: propios.filter(function (r) { return (r.feeling || '').toLowerCase().indexOf('molestia') >= 0; }).length
+    };
+  });
+
   return {
     fecha: fechaISO, meta: meta, total: personal.length,
     cumplieron: cumplieron, pendientes: pendientes, molestias: molestias,
+    porTurno: porTurno,
     pct: personal.length ? Math.round(cumplieron.length * 100 / personal.length) : 0,
     empresa: cfg.companyName || 'Pausas Activas SST',
     correo: cfg.sstEmail || ''
@@ -385,6 +424,13 @@ function enviarResumenDiario() {
         '<td style="background:#fef9c3;border-radius:8px;text-align:center"><b style="font-size:22px">' + r.molestias.length + '</b><br>Molestias</td>' +
       '</tr>' +
     '</table>' +
+    (r.porTurno.length > 1
+      ? '<h3 style="color:#0f766e;margin-bottom:4px">Por turno</h3><ul>' +
+        r.porTurno.map(function (t) {
+          return '<li><b>' + t.nombre + '</b> (desde ' + t.inicio + '): ' + t.pausas +
+                 ' pausas · ' + t.personas + ' colaboradores · ' + t.molestias + ' molestia(s)</li>';
+        }).join('') + '</ul>'
+      : '') +
     '<h3 style="color:#b91c1c;margin-bottom:4px">Molestias reportadas hoy</h3><ul>' +
       li(r.molestias, function (m) {
         return '<li><b>' + m.name + '</b> (' + m.area + ') — ' + (m.segment || 'sin segmento') + ' · ' + m.time + '</li>';

@@ -12,7 +12,11 @@ const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyI-cy6u02mW
 // Debe ser IDÉNTICA a la variable API_KEY del archivo apps-script.gs
 const API_KEY = "pausas-sst-2026";
 
-const DEFAULT_SLOTS = ["06:00", "09:00", "12:00", "15:00"];
+const DEFAULT_SHIFTS = [
+  { name: "Turno 1 · Día",   start: "06:00", slots: ["08:00", "10:00", "12:00", "14:00", "16:00"] },
+  { name: "Turno 2 · Noche", start: "18:00", slots: ["20:00", "22:00", "00:00", "02:00", "04:00"] }
+];
+const SLOTS_ANTIGUAS = ["06:00", "09:00", "12:00", "15:00"];
 
 const STORAGE_KEYS = {
   STAFF: "pausas_sst_staff_v1",
@@ -34,13 +38,32 @@ let settings = Object.assign({
   sheetsUrl: DEFAULT_SHEETS_URL,
   allowSkip: false,
   qrUrl: "",
-  dailyGoal: 3,
+  dailyGoal: 5,
   adminPassHash: "",
   minGapMinutes: 60,
-  shiftStartHour: 0,
-  slots: DEFAULT_SLOTS.slice(),
-  sstEmail: ""
+  sstEmail: "",
+  shiftMode: "dos",
+  shifts: null
 }, loadJSON(STORAGE_KEYS.SETTINGS, {}));
+
+// Migración desde versiones con 4 franjas sueltas y un solo turno
+function migrarAjustes(cfg) {
+  if (!Array.isArray(cfg.shifts) || !cfg.shifts.length) {
+    const viejas = Array.isArray(cfg.slots) && cfg.slots.length ? cfg.slots : null;
+    const personalizadas = viejas && viejas.join(",") !== SLOTS_ANTIGUAS.join(",");
+    cfg.shifts = [
+      { name: DEFAULT_SHIFTS[0].name, start: DEFAULT_SHIFTS[0].start,
+        slots: personalizadas ? viejas.slice() : DEFAULT_SHIFTS[0].slots.slice() },
+      { name: DEFAULT_SHIFTS[1].name, start: DEFAULT_SHIFTS[1].start, slots: DEFAULT_SHIFTS[1].slots.slice() }
+    ];
+  }
+  if (!cfg.shifts[1]) cfg.shifts[1] = JSON.parse(JSON.stringify(DEFAULT_SHIFTS[1]));
+  if (cfg.shiftMode !== "uno" && cfg.shiftMode !== "dos") cfg.shiftMode = "dos";
+  delete cfg.slots;
+  delete cfg.shiftStartHour;
+  return cfg;
+}
+settings = migrarAjustes(settings);
 if (!settings.sheetsUrl) settings.sheetsUrl = DEFAULT_SHEETS_URL;
 
 let activeRoutine = null;
@@ -89,9 +112,14 @@ function isoOf(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(
 
 // Fecha de JORNADA: con turno nocturno, lo ocurrido antes de la hora de
 // inicio pertenece a la jornada del día anterior.
+function jornadaStartHour() {
+  const t = (Array.isArray(settings.shifts) && settings.shifts[0]) || DEFAULT_SHIFTS[0];
+  return Math.floor(minutesOf(t.start || "00:00") / 60);
+}
+
 function jornadaISO(d) {
   const base = d || new Date();
-  const h = Number(settings.shiftStartHour) || 0;
+  const h = jornadaStartHour();
   const x = new Date(base.getTime());
   if (h > 0 && x.getHours() < h) x.setDate(x.getDate() - 1);
   return isoOf(x);
@@ -157,63 +185,159 @@ function speakSpanish(text) {
 }
 
 // ==========================================================
-// FRANJAS HORARIAS: la rutina depende de la HORA, no de un contador
+// TURNOS Y FRANJAS HORARIAS
+// El turno y la rutina se deciden por la HORA en que el colaborador
+// inicia su pausa, así que funciona igual aunque los turnos roten.
 // ==========================================================
-function getSlots() {
-  const s = Array.isArray(settings.slots) && settings.slots.length === ROUTINES.length
-    ? settings.slots
-    : DEFAULT_SLOTS;
-  return s.slice(0, ROUTINES.length);
-}
-
 function minutesOf(hhmm) {
-  const parts = String(hhmm || "00:00").split(":");
-  return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
+  const partes = String(hhmm || "00:00").split(":");
+  return (Number(partes[0]) || 0) * 60 + (Number(partes[1]) || 0);
 }
 
-function blockIndexForNow(d) {
-  const now = d || new Date();
-  const mins = now.getHours() * 60 + now.getMinutes();
-  const slots = getSlots();
-  let idx = -1;
-  slots.forEach((s, i) => { if (mins >= minutesOf(s)) idx = i; });
-  return idx < 0 ? slots.length - 1 : idx;   // antes del primer horario: bloque de madrugada
+function hhmmOf(mins) {
+  const m = ((mins % 1440) + 1440) % 1440;
+  return `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`;
 }
+
+// Minutos transcurridos desde el inicio del turno (maneja el cruce de medianoche)
+function relMin(mins, inicio) { return (mins - inicio + 1440) % 1440; }
+
+function allShifts() {
+  const lista = Array.isArray(settings.shifts) && settings.shifts.length ? settings.shifts : DEFAULT_SHIFTS;
+  return [lista[0] || DEFAULT_SHIFTS[0], lista[1] || DEFAULT_SHIFTS[1]];
+}
+
+function activeShifts() {
+  const todos = allShifts();
+  return settings.shiftMode === "dos" ? todos : [todos[0]];
+}
+
+function shiftSlots(si) {
+  const turnos = activeShifts();
+  const t = turnos[si] || turnos[0];
+  const inicio = minutesOf(t.start);
+  return (t.slots || []).slice().sort((a, b) => relMin(minutesOf(a), inicio) - relMin(minutesOf(b), inicio));
+}
+
+function shiftEnd(si) {
+  const turnos = activeShifts();
+  if (turnos.length < 2) return turnos[0].start;
+  return turnos[(si + 1) % turnos.length].start;
+}
+
+function shiftIndexForTime(d) {
+  const turnos = activeShifts();
+  if (turnos.length < 2) return 0;
+  const m = (d || new Date()).getHours() * 60 + (d || new Date()).getMinutes();
+  const s1 = minutesOf(turnos[0].start);
+  const s2 = minutesOf(turnos[1].start);
+  const enPrimero = s1 < s2 ? (m >= s1 && m < s2) : !(m >= s2 && m < s1);
+  return enPrimero ? 0 : 1;
+}
+
+function shiftNameForTime(d) {
+  const t = activeShifts()[shiftIndexForTime(d || new Date())];
+  return (t && t.name) || "Turno único";
+}
+
+function blockForTime(d) {
+  const ahora = d || new Date();
+  const si = shiftIndexForTime(ahora);
+  const turno = activeShifts()[si];
+  const inicio = minutesOf(turno.start);
+  const slots = shiftSlots(si);
+  const actual = relMin(ahora.getHours() * 60 + ahora.getMinutes(), inicio);
+  let idx = -1;
+  slots.forEach((h, i) => { if (actual >= relMin(minutesOf(h), inicio)) idx = i; });
+  if (idx < 0) idx = Math.max(0, slots.length - 1);
+  return {
+    shiftIndex: si,
+    slotIndex: idx,
+    routineIndex: slots.length ? idx % ROUTINES.length : 0,
+    slot: slots[idx] || turno.start
+  };
+}
+
+function routineIndexForNow(d) { return blockForTime(d).routineIndex; }
 
 function nextSlotInfo(d) {
-  const now = d || new Date();
-  const mins = now.getHours() * 60 + now.getMinutes();
-  const secs = now.getSeconds();
-  const slots = getSlots();
-  for (let i = 0; i < slots.length; i++) {
-    if (minutesOf(slots[i]) > mins) {
-      return { index: i, at: slots[i], seconds: (minutesOf(slots[i]) - mins) * 60 - secs, tomorrow: false };
-    }
-  }
-  return { index: 0, at: slots[0], seconds: ((24 * 60 - mins) + minutesOf(slots[0])) * 60 - secs, tomorrow: true };
+  const ahora = d || new Date();
+  const m = ahora.getHours() * 60 + ahora.getMinutes();
+  const seg = ahora.getSeconds();
+  const todos = [];
+  activeShifts().forEach((t, si) => shiftSlots(si).forEach(h => todos.push({ si, mins: minutesOf(h), label: h })));
+  todos.sort((a, b) => a.mins - b.mins);
+  if (!todos.length) return { label: "--:--", seconds: 0, tomorrow: true, si: 0 };
+  const sig = todos.find(x => x.mins > m);
+  if (sig) return Object.assign({}, sig, { seconds: (sig.mins - m) * 60 - seg, tomorrow: false });
+  const primero = todos[0];
+  return Object.assign({}, primero, { seconds: ((1440 - m) + primero.mins) * 60 - seg, tomorrow: true });
 }
+
+// Horas en las que se usa cada bloque de rutina (para el catálogo)
+function horasDeBloque(ri) {
+  const out = [];
+  activeShifts().forEach((t, si) => shiftSlots(si).forEach((h, i) => {
+    if (i % ROUTINES.length === ri) out.push(h);
+  }));
+  return [...new Set(out)].sort();
+}
+
+let scheduleViewShift = null;   // null = sigue al turno activo
+let lastScheduleKey = "";
 
 function renderSchedule() {
   const list = document.getElementById("schedule-list");
   if (!list) return;
-  const slots = getSlots();
-  const activo = blockIndexForNow();
+
+  const turnos = activeShifts();
+  const info = blockForTime();
+  const verSi = scheduleViewShift === null ? info.shiftIndex : Math.min(scheduleViewShift, turnos.length - 1);
+  const turno = turnos[verSi];
+  const slots = shiftSlots(verSi);
+  const esActivo = verSi === info.shiftIndex;
+
+  const clave = JSON.stringify([verSi, esActivo ? info.slotIndex : -1, turnos]);
+  if (clave !== lastScheduleKey) {
+    let html = `<div class="shift-head">
+        <span class="shift-name">${escapeHTML(turno.name)}${esActivo ? ' <em>en curso</em>' : ""}</span>
+        <span class="shift-hours">${escapeHTML(turno.start)} a ${escapeHTML(shiftEnd(verSi))}</span>
+      </div>`;
+
+    html += slots.length
+      ? slots.map((hora, i) => {
+          const activo = esActivo && i === info.slotIndex;
+          const nombre = ROUTINES[i % ROUTINES.length].name.replace(/^Bloque \d+:\s*/, "");
+          return `<div class="schedule-slot ${activo ? "is-now" : ""}">
+            <span class="slot-time">${escapeHTML(hora)}</span>
+            <span class="slot-name">${escapeHTML(nombre)}</span>
+            <span class="slot-tag">${activo ? "Ahora" : ""}</span>
+          </div>`;
+        }).join("")
+      : `<p class="muted">Este turno no tiene franjas configuradas.</p>`;
+
+    if (turnos.length > 1) {
+      const otro = turnos[(verSi + 1) % turnos.length];
+      html += `<button type="button" class="btn-link shift-toggle" id="btn-toggle-shift">Ver ${escapeHTML(otro.name)}</button>`;
+    }
+
+    list.innerHTML = html;
+    const btn = document.getElementById("btn-toggle-shift");
+    if (btn) btn.addEventListener("click", () => {
+      scheduleViewShift = (verSi + 1) % turnos.length;
+      lastScheduleKey = "";
+      renderSchedule();
+    });
+    lastScheduleKey = clave;
+  }
+
   const next = nextSlotInfo();
-
-  list.innerHTML = slots.map((hora, i) => `
-    <div class="schedule-slot ${i === activo ? "is-now" : ""} ${i === next.index && !next.tomorrow ? "is-next" : ""}">
-      <span class="slot-time">${escapeHTML(hora)}</span>
-      <span class="slot-name">${escapeHTML(ROUTINES[i].name.replace(/^Bloque \d+:\s*/, ""))}</span>
-      <span class="slot-tag">${i === activo ? "Ahora" : ""}</span>
-    </div>
-  `).join("");
-
-  document.getElementById("kiosk-block-badge").textContent = `Bloque ${activo + 1} de ${ROUTINES.length}`;
-  document.getElementById("next-routine-name").textContent = ROUTINES[activo].name;
+  document.getElementById("kiosk-block-badge").textContent = `Bloque ${info.routineIndex + 1} de ${ROUTINES.length}`;
+  document.getElementById("next-routine-name").textContent = ROUTINES[info.routineIndex].name;
   document.getElementById("countdown-display").textContent = formatHMS(next.seconds);
 
   const badge = document.getElementById("timer-status-badge");
-  badge.textContent = next.tomorrow ? "Fuera de horario" : `Próxima ${next.at}`;
+  badge.textContent = next.tomorrow ? "Fuera de horario" : `Próxima ${next.label}`;
   badge.className = `badge ${next.tomorrow ? "badge-idle" : "badge-active"}`;
 }
 
@@ -320,9 +444,15 @@ function applyRemoteConfig(cfg) {
   if (cfg.logoDataUrl) settings.logoDataUrl = cfg.logoDataUrl;
   if (cfg.adminPassHash) settings.adminPassHash = cfg.adminPassHash;
   if (typeof cfg.minGapMinutes !== "undefined") settings.minGapMinutes = Number(cfg.minGapMinutes) || 0;
-  if (typeof cfg.shiftStartHour !== "undefined") settings.shiftStartHour = Number(cfg.shiftStartHour) || 0;
-  if (Array.isArray(cfg.slots) && cfg.slots.length === ROUTINES.length) settings.slots = cfg.slots;
+  if (cfg.shiftMode === "uno" || cfg.shiftMode === "dos") settings.shiftMode = cfg.shiftMode;
+  if (cfg.shiftsJson) {
+    try {
+      const turnos = JSON.parse(cfg.shiftsJson);
+      if (Array.isArray(turnos) && turnos.length) settings.shifts = turnos;
+    } catch {}
+  }
   if (cfg.sstEmail) settings.sstEmail = cfg.sstEmail;
+  settings = migrarAjustes(settings);
   saveJSON(STORAGE_KEYS.SETTINGS, settings);
 }
 
@@ -372,11 +502,13 @@ async function pushConfig() {
     qrUrl: settings.qrUrl || "",
     adminPassHash: settings.adminPassHash || "",
     minGapMinutes: Number(settings.minGapMinutes) || 0,
-    shiftStartHour: Number(settings.shiftStartHour) || 0,
-    slots: getSlots(),
+    shiftMode: settings.shiftMode || "dos",
+    shiftsJson: JSON.stringify(allShifts()),
+    shiftStartHour: jornadaStartHour(),
     sstEmail: settings.sstEmail || ""
   };
-  if (settings.logoDataUrl && settings.logoDataUrl.length < 40000) cfg.logoDataUrl = settings.logoDataUrl;
+  // El logo viaja siempre (vacío = quitarlo en todos los dispositivos)
+  cfg.logoDataUrl = (settings.logoDataUrl && settings.logoDataUrl.length < 45000) ? settings.logoDataUrl : "";
   try {
     const r = await apiPost({ action: "saveConfig", config: cfg });
     return Boolean(r && r.ok);
@@ -540,7 +672,7 @@ document.getElementById("btn-sync-kiosk").addEventListener("click", async () => 
 // REPRODUCTOR DE PAUSA GUIADA
 // ==========================================================
 function startGuidedBreak() {
-  activeRoutine = ROUTINES[blockIndexForNow()];
+  activeRoutine = ROUTINES[routineIndexForNow()];
   currentExIndex = 0;
   exPaused = false;
 
@@ -586,6 +718,11 @@ function loadExercise(idx) {
   document.getElementById("player-exercise-desc").textContent = ex.desc;
   document.getElementById("player-exercise-moving").textContent = ex.moving;
   document.getElementById("player-exercise-prevents").textContent = ex.prevents;
+  const breathEl = document.getElementById("player-exercise-breath");
+  if (breathEl) {
+    breathEl.textContent = ex.breath ||
+      "Respira lento y continuo, sin contener el aire. Suspende y avisa a SST ante cualquier dolor.";
+  }
   document.getElementById("player-ex-timer").textContent = formatMS(exRemaining);
   document.getElementById("player-total-timer").textContent = formatMS(calcTotalRemaining());
   document.getElementById("btn-ex-toggle").textContent = "Pausar";
@@ -639,6 +776,7 @@ function finishGuidedBreak() {
       name: activeParticipant.name,
       area: activeParticipant.area,
       routine: activeRoutine.name,
+      shift: shiftNameForTime(ahora),
       feeling: "Bien",
       segment: ""
     };
@@ -1033,6 +1171,7 @@ function renderCompliance() {
         <td>${a.pain > 0 ? `<span class="badge badge-no">${a.pain}</span>` : "0"}</td>
       </tr>`).join("");
 
+  renderShiftSummary(dateStr);
   renderSegmentChart(dateStr);
 
   const filtered = allRows.filter(r => {
@@ -1058,6 +1197,36 @@ function renderCompliance() {
         <td>${escapeHTML(r.lastTime)}</td>
         <td>${r.count > 0 ? `<span class="badge badge-ok">Sí cumplió</span>` : `<span class="badge badge-no">No ha hecho</span>`}</td>
       </tr>`).join("");
+}
+
+// ---------- Cumplimiento por turno ----------
+function shiftOfRecord(r) {
+  if (r && r.shift) return r.shift;
+  return shiftNameForTime(recDateTime(r));
+}
+
+function renderShiftSummary(dateStr) {
+  const tbody = document.getElementById("shift-summary-body");
+  const card = document.getElementById("shift-summary-card");
+  if (!tbody || !card) return;
+
+  const turnos = activeShifts();
+  card.classList.toggle("hidden", turnos.length < 2);
+  if (turnos.length < 2) return;
+
+  const delDia = attendance.filter(r => r.date === dateStr);
+  tbody.innerHTML = turnos.map((t, i) => {
+    const propios = delDia.filter(r => shiftOfRecord(r) === t.name);
+    const personas = new Set(propios.map(r => String(r.id))).size;
+    const molestias = propios.filter(r => (r.feeling || "").toLowerCase().includes("molestia")).length;
+    return `<tr>
+      <td><strong>${escapeHTML(t.name)}</strong></td>
+      <td>${escapeHTML(t.start)} a ${escapeHTML(shiftEnd(i))}</td>
+      <td><span class="badge badge-ok">${personas}</span></td>
+      <td><strong>${propios.length}</strong></td>
+      <td>${molestias > 0 ? `<span class="badge badge-no">${molestias}</span>` : "0"}</td>
+    </tr>`;
+  }).join("");
 }
 
 // ---------- Morbilidad sentida por segmento ----------
@@ -1123,6 +1292,8 @@ function renderAttendanceHistory() {
   const filterDate = document.getElementById("filter-date").value;
   const areaSelect = document.getElementById("filter-area");
   const filterArea = areaSelect.value;
+  const shiftSelect = document.getElementById("filter-shift");
+  const filterShift = shiftSelect ? shiftSelect.value : "";
   const tbody = document.getElementById("attendance-history-body");
 
   const areas = [...new Set([...staff.map(s => s.area), ...attendance.map(a => a.area)])].filter(Boolean).sort();
@@ -1130,14 +1301,22 @@ function renderAttendanceHistory() {
     areas.map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join("");
   areaSelect.value = filterArea;
 
+  if (shiftSelect) {
+    const turnos = activeShifts().map(t => t.name);
+    shiftSelect.innerHTML = `<option value="">Todos los turnos</option>` +
+      turnos.map(t => `<option value="${escapeHTML(t)}">${escapeHTML(t)}</option>`).join("");
+    shiftSelect.value = filterShift;
+  }
+
   const filtered = attendance.filter(rec => {
     if (filterDate && rec.date !== filterDate) return false;
     if (filterArea && rec.area !== filterArea) return false;
+    if (filterShift && shiftOfRecord(rec) !== filterShift) return false;
     return true;
   });
 
   tbody.innerHTML = filtered.length === 0
-    ? `<tr><td colspan="7" class="muted">Sin registros de asistencia para los filtros seleccionados.</td></tr>`
+    ? `<tr><td colspan="8" class="muted">Sin registros de asistencia para los filtros seleccionados.</td></tr>`
     : filtered.slice(0, 500).map(rec => {
         const f = rec.feeling || "Bien";
         const badge = f.toLowerCase().includes("molestia")
@@ -1150,6 +1329,7 @@ function renderAttendanceHistory() {
           <td>${escapeHTML(rec.id)}</td>
           <td><strong>${escapeHTML(rec.name)}</strong></td>
           <td>${escapeHTML(rec.area)}</td>
+          <td>${escapeHTML(shiftOfRecord(rec))}</td>
           <td>${escapeHTML(rec.routine)}</td>
           <td>${badge}</td>
           <td><span class="muted">${escapeHTML(rec.origin || (pending.some(p => p.rid === rec.rid) ? "Por enviar" : "—"))}</span></td>
@@ -1159,6 +1339,8 @@ function renderAttendanceHistory() {
 
 document.getElementById("filter-date").addEventListener("change", renderAttendanceHistory);
 document.getElementById("filter-area").addEventListener("change", renderAttendanceHistory);
+const filtroTurno = document.getElementById("filter-shift");
+if (filtroTurno) filtroTurno.addEventListener("change", renderAttendanceHistory);
 
 document.getElementById("btn-clear-history").addEventListener("click", async () => {
   if (!confirm("¿Seguro que deseas borrar TODO el historial de asistencia?\n\nSe borrará también en Google Sheets y en todos los dispositivos. Esta acción no se puede deshacer.")) return;
@@ -1336,14 +1518,14 @@ document.getElementById("btn-export-staff").addEventListener("click", () => {
 // ---------- Catálogo de rutinas ----------
 function renderRoutines() {
   const grid = document.getElementById("routines-grid");
-  const slots = getSlots();
   grid.innerHTML = "";
   ROUTINES.forEach((r, i) => {
+    const horas = horasDeBloque(i);
     const card = document.createElement("div");
     card.className = "card routine-card";
     card.innerHTML = `
       <div>
-        <span class="badge badge-active">Franja ${escapeHTML(slots[i])} · ${r.exercises.length} ejercicios</span>
+        <span class="badge badge-active">${horas.length ? "Se usa a las " + escapeHTML(horas.join(" · ")) : "Sin franja asignada"} · ${r.exercises.length} ejercicios</span>
         <h3 style="margin:0.6rem 0 0.25rem;">${escapeHTML(r.name)}</h3>
         <p class="muted" style="margin:0;">${escapeHTML(r.focus)}</p>
         <ul class="routine-ex-list">
@@ -1399,8 +1581,8 @@ document.getElementById("btn-export-compliance").addEventListener("click", () =>
 document.getElementById("btn-export-attendance").addEventListener("click", () => {
   if (!attendance.length) { showToast("No hay registros de asistencia para exportar."); return; }
   exportExcelWorkbook([{ name: "Historial", rows: [
-    ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Rutina", "Bienestar", "Segmento", "Origen"],
-    ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, r.routine, r.feeling || "Bien", r.segment || "", r.origin || ""])
+    ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Turno", "Rutina", "Bienestar", "Segmento", "Origen"],
+    ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, shiftOfRecord(r), r.routine, r.feeling || "Bien", r.segment || "", r.origin || ""])
   ]}], `historial_pausas_activas_${jornadaISO()}.xlsx`);
 });
 
@@ -1423,8 +1605,8 @@ document.getElementById("btn-export-excel-full").addEventListener("click", () =>
       ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Segmento_Corporal"],
       ...segRecs.map(r => [r.date, r.time, r.id, r.name, r.area, r.segment || "Sin especificar"])]},
     { name: "Historial_Detallado", rows: [
-      ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Rutina", "Bienestar", "Segmento", "Origen"],
-      ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, r.routine, r.feeling || "Bien", r.segment || "", r.origin || ""])]}
+      ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Turno", "Rutina", "Bienestar", "Segmento", "Origen"],
+      ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, shiftOfRecord(r), r.routine, r.feeling || "Bien", r.segment || "", r.origin || ""])]}
   ], `reporte_completo_sst_${dateStr}.xlsx`);
 });
 
@@ -1481,6 +1663,16 @@ document.getElementById("btn-monthly-report").addEventListener("click", () => {
         `<tr><td>${escapeHTML(a)}</td><td>${v.total}</td><td>${v.pausas}</td><td>${v.total ? (v.pausas / v.total).toFixed(1) : "0"}</td><td>${v.molestias}</td></tr>`).join("")}
     </tbody></table>
 
+    ${activeShifts().length > 1 ? `<h3>Cumplimiento por turno</h3>
+    <table class="grid"><thead><tr><th>Turno</th><th>Horario</th><th>Pausas del mes</th><th>Colaboradores distintos</th><th>Molestias</th></tr></thead><tbody>
+      ${activeShifts().map((t, i) => {
+        const propios = recs.filter(r => shiftOfRecord(r) === t.name);
+        const personas = new Set(propios.map(r => String(r.id))).size;
+        const mol = propios.filter(r => (r.feeling || "").toLowerCase().includes("molestia")).length;
+        return `<tr><td>${escapeHTML(t.name)}</td><td>${escapeHTML(t.start)} a ${escapeHTML(shiftEnd(i))}</td><td>${propios.length}</td><td>${personas}</td><td>${mol}</td></tr>`;
+      }).join("")}
+    </tbody></table>` : ""}
+
     <h3>Morbilidad sentida por segmento corporal</h3>
     ${Object.keys(segs).length ? `<table class="grid"><thead><tr><th>Segmento</th><th>Reportes</th></tr></thead><tbody>
       ${Object.entries(segs).sort((a, b) => b[1] - a[1]).map(([s, n]) => `<tr><td>${escapeHTML(s)}</td><td>${n}</td></tr>`).join("")}
@@ -1502,26 +1694,94 @@ document.getElementById("btn-monthly-report").addEventListener("click", () => {
 // ==========================================================
 function applyBranding() {
   document.getElementById("brand-title").textContent = settings.companyName || "Pausas Activas SST";
+
   const logoWrap = document.getElementById("brand-logo-wrap");
-  logoWrap.innerHTML = settings.logoDataUrl ? `<img src="${settings.logoDataUrl}" alt="Logo empresa" />` : "";
-  if (!settings.logoDataUrl) logoWrap.textContent = "SST";
+  document.body.classList.toggle("tiene-logo", Boolean(settings.logoDataUrl));
+  if (settings.logoDataUrl) {
+    logoWrap.classList.add("has-logo");
+    logoWrap.innerHTML = `<img src="${settings.logoDataUrl}" alt="${escapeHTML(settings.companyName || "Logo de la empresa")}" />`;
+  } else {
+    logoWrap.classList.remove("has-logo");
+    logoWrap.textContent = "SST";
+  }
+
+  const prev = document.getElementById("logo-preview");
+  if (prev) {
+    prev.innerHTML = settings.logoDataUrl
+      ? `<img src="${settings.logoDataUrl}" alt="Vista previa del logo" />`
+      : `<span class="muted">Sin logo</span>`;
+  }
+
+  const sub = document.getElementById("brand-subtitle");
+  if (sub) {
+    sub.textContent = settings.shiftMode === "dos"
+      ? "Dos turnos de 12 horas · Personal de pie y esfuerzo físico"
+      : "Personal de pie y esfuerzo físico";
+  }
 
   document.getElementById("cfg-company").value = settings.companyName || "";
-  document.getElementById("cfg-daily-goal").value = String(settings.dailyGoal || 3);
+  document.getElementById("cfg-daily-goal").value = String(settings.dailyGoal || 5);
   document.getElementById("cfg-sheets-url").value = settings.sheetsUrl || "";
   document.getElementById("cfg-allow-skip").checked = Boolean(settings.allowSkip);
   document.getElementById("cfg-min-gap").value = String(Number(settings.minGapMinutes) || 0);
-  document.getElementById("cfg-shift-start").value = String(Number(settings.shiftStartHour) || 0);
   document.getElementById("cfg-sst-email").value = settings.sstEmail || "";
-  getSlots().forEach((s, i) => {
-    const el = document.getElementById(`cfg-slot-${i}`);
-    if (el) el.value = s;
-  });
+  document.getElementById("cfg-shift-mode").value = settings.shiftMode || "dos";
+  renderShiftsEditor();
 
   const qr = settings.qrUrl || (location.href.startsWith("http") ? location.href.split("?")[0] : "https://sstfritosjs.github.io/pausasactivas/");
   document.getElementById("cfg-qr-url").value = qr;
   updateQRPreview(qr);
 }
+
+// Turnos mostrados en el formulario (según el modo elegido, aún sin guardar)
+function editorShifts() {
+  const sel = document.getElementById("cfg-shift-mode");
+  const modo = (sel && sel.value) || settings.shiftMode || "dos";
+  const todos = allShifts();
+  return modo === "dos" ? todos : [todos[0]];
+}
+
+function renderShiftsEditor() {
+  const cont = document.getElementById("shifts-editor");
+  if (!cont) return;
+  const turnos = editorShifts();
+
+  cont.innerHTML = turnos.map((t, i) => `
+    <fieldset class="shift-card">
+      <legend>${escapeHTML(t.name || "Turno " + (i + 1))}</legend>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="shift-name-${i}">Nombre del turno</label>
+          <input type="text" id="shift-name-${i}" value="${escapeHTML(t.name || "")}" />
+        </div>
+        <div class="form-group">
+          <label for="shift-start-${i}">Hora de inicio</label>
+          <input type="time" id="shift-start-${i}" value="${escapeHTML(t.start || "06:00")}" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="shift-slots-${i}">Horas de pausa (separadas por coma)</label>
+        <input type="text" id="shift-slots-${i}" value="${escapeHTML((t.slots || []).join(", "))}" />
+        <small class="muted">Las ${ROUTINES.length} rutinas rotan en el orden de estas horas.</small>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" data-gen-slots="${i}">Generar cada 2 horas</button>
+    </fieldset>
+  `).join("");
+
+  cont.querySelectorAll("[data-gen-slots]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const i = Number(btn.dataset.genSlots);
+      const inicio = minutesOf(document.getElementById(`shift-start-${i}`).value || "06:00");
+      const n = Number(document.getElementById("cfg-daily-goal").value) || 5;
+      const horas = [];
+      for (let k = 1; k <= n; k++) horas.push(hhmmOf(inicio + k * 120));
+      document.getElementById(`shift-slots-${i}`).value = horas.join(", ");
+      showToast(`Franjas generadas cada 2 horas desde las ${hhmmOf(inicio)}.`);
+    });
+  });
+}
+
+document.getElementById("cfg-shift-mode").addEventListener("change", renderShiftsEditor);
 
 function updateQRPreview(url) {
   const clean = (url || "").trim();
@@ -1530,18 +1790,79 @@ function updateQRPreview(url) {
   document.getElementById("qr-caption").textContent = clean;
 }
 
-document.getElementById("cfg-logo-file").addEventListener("change", e => {
+// El logo se reduce y comprime: un archivo grande no cabe en la hoja de
+// Google y por eso antes no llegaba a los demás dispositivos.
+const LOGO_MAX_CHARS = 28000;
+
+function cargarImagen(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = fr.result;
+    };
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+}
+
+async function comprimirLogo(file) {
+  const img = await cargarImagen(file);
+  const escala = Math.min(420 / img.width, 140 / img.height, 1);
+  const w = Math.max(1, Math.round(img.width * escala));
+  const h = Math.max(1, Math.round(img.height * escala));
+
+  const lienzo = document.createElement("canvas");
+  lienzo.width = w; lienzo.height = h;
+  lienzo.getContext("2d").drawImage(img, 0, 0, w, h);
+
+  let url = lienzo.toDataURL("image/png");   // conserva la transparencia
+  if (url.length > LOGO_MAX_CHARS) {
+    const plano = document.createElement("canvas");
+    plano.width = w; plano.height = h;
+    const ctx = plano.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    for (const q of [0.85, 0.72, 0.6, 0.5, 0.4]) {
+      url = plano.toDataURL("image/jpeg", q);
+      if (url.length <= LOGO_MAX_CHARS) break;
+    }
+  }
+  return url;
+}
+
+document.getElementById("cfg-logo-file").addEventListener("change", async e => {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async ev => {
-    settings.logoDataUrl = ev.target.result;
+  try {
+    setSyncState(true, "Optimizando el logo...");
+    settings.logoDataUrl = await comprimirLogo(file);
     saveJSON(STORAGE_KEYS.SETTINGS, settings);
     applyBranding();
-    await pushConfig();
-    showToast("Logo actualizado.");
-  };
-  reader.readAsDataURL(file);
+    const ok = await pushConfig();
+    setSyncState(false);
+    const kb = Math.round(settings.logoDataUrl.length / 1024);
+    showToast(ok
+      ? `Logo actualizado (${kb} KB). Ya se ve en todos los dispositivos.`
+      : `Logo guardado en este dispositivo (${kb} KB). Se subirá al reconectar.`);
+  } catch {
+    setSyncState(false);
+    showToast("No se pudo procesar la imagen. Intenta con un archivo PNG o JPG.");
+  }
+  e.target.value = "";
+});
+
+document.getElementById("btn-remove-logo").addEventListener("click", async () => {
+  settings.logoDataUrl = "";
+  saveJSON(STORAGE_KEYS.SETTINGS, settings);
+  applyBranding();
+  setSyncState(true, "Quitando el logo en todos los dispositivos...");
+  const ok = await pushConfig();
+  setSyncState(false);
+  showToast(ok ? "Logo eliminado en todos los dispositivos." : "Logo eliminado en este dispositivo.");
 });
 
 document.getElementById("form-settings").addEventListener("submit", async e => {
@@ -1551,21 +1872,33 @@ document.getElementById("form-settings").addEventListener("submit", async e => {
   settings.sheetsUrl = document.getElementById("cfg-sheets-url").value.trim();
   settings.allowSkip = document.getElementById("cfg-allow-skip").checked;
   settings.minGapMinutes = Number(document.getElementById("cfg-min-gap").value) || 0;
-  settings.shiftStartHour = Number(document.getElementById("cfg-shift-start").value) || 0;
   settings.sstEmail = document.getElementById("cfg-sst-email").value.trim();
 
-  const nuevos = [];
-  for (let i = 0; i < ROUTINES.length; i++) {
-    const v = (document.getElementById(`cfg-slot-${i}`).value || "").trim();
-    nuevos.push(/^\d{2}:\d{2}$/.test(v) ? v : DEFAULT_SLOTS[i]);
-  }
-  settings.slots = nuevos;
+  const modo = document.getElementById("cfg-shift-mode").value === "dos" ? "dos" : "uno";
+  const previos = allShifts();
+  const leidos = editorShifts().map((t, i) => {
+    const nombre = (document.getElementById(`shift-name-${i}`).value || "").trim() || `Turno ${i + 1}`;
+    const inicio = (document.getElementById(`shift-start-${i}`).value || "").trim() || DEFAULT_SHIFTS[i].start;
+    const horas = (document.getElementById(`shift-slots-${i}`).value || "")
+      .split(",")
+      .map(x => x.trim())
+      .filter(x => /^\d{1,2}:\d{2}$/.test(x))
+      .map(x => hhmmOf(minutesOf(x)));
+    return { name: nombre, start: inicio, slots: horas.length ? horas : previos[i].slots.slice() };
+  });
+
+  settings.shiftMode = modo;
+  settings.shifts = modo === "dos" ? leidos : [leidos[0], previos[1]];
+  settings = migrarAjustes(settings);
+  lastScheduleKey = "";
+  scheduleViewShift = null;
 
   saveJSON(STORAGE_KEYS.SETTINGS, settings);
   applyBranding();
   renderSchedule();
   renderRoutines();
   refreshAll();
+  renderShiftsEditor();
 
   setSyncState(true, "Guardando configuración compartida...");
   const ok = await pushConfig();

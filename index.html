@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="icon" href="icon-192.png" />
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
   <div id="sync-bar" class="sync-bar hidden" role="status" aria-live="polite">
@@ -20,9 +20,9 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-icon" id="brand-logo-wrap" aria-hidden="true">SST</div>
-      <div>
+      <div class="brand-text">
         <h1 id="brand-title">Pausas Activas SST</h1>
-        <p class="subtitle">Programa por franjas horarias · Personal de pie y esfuerzo físico</p>
+        <p class="subtitle" id="brand-subtitle">Personal de pie y esfuerzo físico</p>
       </div>
     </div>
 
@@ -131,6 +131,10 @@
                 <span class="ergo-title">Lesiones que evita</span>
                 <p id="player-exercise-prevents">-</p>
               </div>
+              <div class="ergo-box ergo-breath">
+                <span class="ergo-title">Respiración y cuidado</span>
+                <p id="player-exercise-breath">-</p>
+              </div>
             </div>
             <div class="exercise-timer-row">
               <div>
@@ -214,6 +218,18 @@
                 <tr><th>Área</th><th>Total Personal</th><th>Sí cumplieron</th><th>Pendientes</th><th>% Cumplimiento</th><th>Molestias</th></tr>
               </thead>
               <tbody id="area-summary-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="shift-summary-card" style="margin-bottom:1.25rem;">
+          <div class="card-header"><h2>Cumplimiento por turno</h2></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Turno</th><th>Horario</th><th>Colaboradores con pausa</th><th>Total pausas</th><th>Molestias</th></tr>
+              </thead>
+              <tbody id="shift-summary-body"></tbody>
             </table>
           </div>
         </div>
@@ -305,11 +321,15 @@
               <label for="filter-area">Filtrar por área</label>
               <select id="filter-area"><option value="">Todas las áreas</option></select>
             </div>
+            <div class="form-group">
+              <label for="filter-shift">Filtrar por turno</label>
+              <select id="filter-shift"><option value="">Todos los turnos</option></select>
+            </div>
           </div>
           <div class="table-wrap">
             <table class="data-table">
               <thead>
-                <tr><th>Fecha y Hora</th><th>Cédula</th><th>Nombre</th><th>Área</th><th>Rutina</th><th>Bienestar</th><th>Registro</th></tr>
+                <tr><th>Fecha y Hora</th><th>Cédula</th><th>Nombre</th><th>Área</th><th>Turno</th><th>Rutina</th><th>Bienestar</th><th>Registro</th></tr>
               </thead>
               <tbody id="attendance-history-body"></tbody>
             </table>
@@ -397,25 +417,33 @@
               <div class="form-group">
                 <label for="cfg-logo-file">Logo de la empresa (imagen opcional)</label>
                 <input type="file" id="cfg-logo-file" accept="image/*" />
+                <small class="muted">Se reduce y comprime automáticamente para que llegue a todos los dispositivos. Preferiblemente PNG con fondo transparente.</small>
+                <div class="logo-preview-row">
+                  <div class="logo-preview" id="logo-preview"><span class="muted">Sin logo</span></div>
+                  <button type="button" id="btn-remove-logo" class="btn btn-danger-outline btn-sm">Quitar logo</button>
+                </div>
               </div>
               <div class="form-group">
                 <label for="cfg-daily-goal">Meta diaria de pausas por colaborador</label>
                 <select id="cfg-daily-goal">
-                  <option value="2">2 pausas al día</option>
-                  <option value="3">3 pausas al día (turno de 8 horas)</option>
-                  <option value="4">4 pausas al día (turnos extendidos)</option>
+                  <option value="2">2 pausas por jornada</option>
+                  <option value="3">3 pausas por jornada (turno de 8 horas)</option>
+                  <option value="4">4 pausas por jornada</option>
+                  <option value="5">5 pausas por jornada (turno de 12 horas)</option>
+                  <option value="6">6 pausas por jornada</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <label>Horarios de las 4 franjas (define qué rutina corresponde a cada hora)</label>
-                <div class="slots-row">
-                  <label class="slot-field">B1 <input type="time" id="cfg-slot-0" /></label>
-                  <label class="slot-field">B2 <input type="time" id="cfg-slot-1" /></label>
-                  <label class="slot-field">B3 <input type="time" id="cfg-slot-2" /></label>
-                  <label class="slot-field">B4 <input type="time" id="cfg-slot-3" /></label>
-                </div>
+                <label for="cfg-shift-mode">Turnos que maneja la empresa</label>
+                <select id="cfg-shift-mode">
+                  <option value="uno">Un solo turno</option>
+                  <option value="dos">Dos turnos de 12 horas</option>
+                </select>
+                <small class="muted">La rutina y el turno se deciden por la hora en que el colaborador inicia su pausa, así que sirve igual aunque los turnos roten.</small>
               </div>
+
+              <div id="shifts-editor" class="shifts-editor"></div>
 
               <div class="form-group">
                 <label for="cfg-min-gap">Tiempo mínimo entre pausas de un mismo colaborador</label>
@@ -429,17 +457,6 @@
                 <small class="muted">Evita que se registren varias pausas seguidas para inflar el cumplimiento.</small>
               </div>
 
-              <div class="form-group">
-                <label for="cfg-shift-start">Hora de inicio de la jornada (para turnos nocturnos)</label>
-                <select id="cfg-shift-start">
-                  <option value="0">Día calendario normal (00:00)</option>
-                  <option value="5">05:00</option>
-                  <option value="6">06:00</option>
-                  <option value="7">07:00</option>
-                  <option value="22">22:00 (turno nocturno)</option>
-                </select>
-                <small class="muted">Lo registrado antes de esta hora cuenta para la jornada del día anterior.</small>
-              </div>
 
               <div class="form-group">
                 <label for="cfg-sst-email">Correo de SST para el resumen diario</label>
@@ -588,8 +605,8 @@
   </div>
 
   <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-  <script src="illustrations.js?v=3"></script>
-  <script src="routines.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="illustrations.js?v=4"></script>
+  <script src="routines.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

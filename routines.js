@@ -17,7 +17,8 @@ const ROUTINES = [
         prevents: "Várices, insuficiencia venosa, hinchazón de pies, calambres y fascitis plantar.",
         duration: 50,
         svgKey: "talones",
-        desc: "De pie, sube lentamente en puntas de pies sosteniendo 2 segundos y baja controlado. Repite de forma fluida."
+        desc: "De pie, sube lentamente en puntas de pies sosteniendo 2 segundos y baja controlado. Repite de forma fluida.",
+        breath: "Inhala al subir en puntas y exhala al bajar. No rebotes: el descenso es lento y controlado. Si pierdes el equilibrio, apóyate en una superficie firme."
       },
       {
         name: "Extensión lumbar con manos en cintura",
@@ -26,7 +27,8 @@ const ROUTINES = [
         prevents: "Lumbalgia, hernias discales por compresión y contracturas en la espalda baja.",
         duration: 50,
         svgKey: "lumbar",
-        desc: "Coloca las manos en la espalda baja, pies al ancho de hombros e inclina suavemente el tronco hacia atrás mirando al frente."
+        desc: "Coloca las manos en la espalda baja, pies al ancho de hombros e inclina suavemente el tronco hacia atrás mirando al frente.",
+        breath: "Inhala antes de inclinarte y exhala al extender. Movimiento corto y suave. Si sientes dolor punzante o que baja por la pierna, detente y avisa a SST."
       },
       {
         name: "Sentadilla parcial controlada (sin peso)",
@@ -35,7 +37,8 @@ const ROUTINES = [
         prevents: "Fatiga lumbar por estar de pie, debilidad de glúteos y sobrecarga articular.",
         duration: 50,
         svgKey: "sentadilla",
-        desc: "Pies al ancho de hombros, baja ligeramente llevando la cadera atrás con espalda recta y brazos al frente, luego sube suave."
+        desc: "Pies al ancho de hombros, baja ligeramente llevando la cadera atrás con espalda recta y brazos al frente, luego sube suave.",
+        breath: "Inhala al bajar y exhala al subir. Las rodillas no pasan la punta de los pies y los talones permanecen apoyados en el piso."
       },
       {
         name: "Estiramiento de cuádriceps con apoyo",
@@ -44,7 +47,8 @@ const ROUTINES = [
         prevents: "Tendinitis rotuliana, sobrecarga de rodillas y fatiga muscular en muslos.",
         duration: 50,
         svgKey: "cuadriceps",
-        desc: "Apoya una mano en una superficie firme, lleva el talón al glúteo (25s pierna derecha y 25s pierna izquierda)."
+        desc: "Apoya una mano en una superficie firme, lleva el talón al glúteo (25s pierna derecha y 25s pierna izquierda).",
+        breath: "Respira lento y profundo sin sostener el aire. Mantén la rodilla apuntando al piso; si duele la rodilla, reduce el recorrido."
       },
       {
         name: "Marcha suave elevando rodillas",
@@ -53,7 +57,8 @@ const ROUTINES = [
         prevents: "Rigidez de cadera, entumecimiento de piernas y fatiga circulatoria por bipedestación prolongada.",
         duration: 50,
         svgKey: "marcha",
-        desc: "Eleva alternadamente las rodillas a altura cómoda sin impacto, acompañando con respiración profunda."
+        desc: "Eleva alternadamente las rodillas a altura cómoda sin impacto, acompañando con respiración profunda.",
+        breath: "Respira al ritmo del paso, sin agitarte. Sube la rodilla solo hasta donde controles el equilibrio y apoya el pie sin impacto."
       },
       {
         name: "Respiración diafragmática profunda",
@@ -62,7 +67,8 @@ const ROUTINES = [
         prevents: "Fatiga física acumulada y tensión muscular general.",
         duration: 50,
         svgKey: "respiracion",
-        desc: "Inhala profundo en 4 segundos elevando brazos y exhala lento en 6 segundos bajándolos."
+        desc: "Inhala profundo en 4 segundos elevando brazos y exhala lento en 6 segundos bajándolos.",
+        breath: "Inhala por la nariz en 4 tiempos y exhala por la boca en 6. Si sientes mareo, vuelve a tu respiración normal y siéntate."
       }
     ]
   },
@@ -79,7 +85,8 @@ const ROUTINES = [
         prevents: "Tendinitis del manguito rotador, bursitis de hombro y tensión en trapecios.",
         duration: 50,
         svgKey: "hombros",
-        desc: "Rota ambos hombros hacia atrás con movimientos lentos y amplios, abriendo el pecho al inhalar."
+        desc: "Rota ambos hombros hacia atrás con movimientos lentos y amplios, abriendo el pecho al inhalar.",
+        breath: "Inhala al llevar los hombros hacia atrás y exhala al cerrarlos. Movimiento lento y amplio; si hay chasquido con dolor, suspende."
       },
       {
         name: "Estiramiento lateral de cuello",
@@ -88,7 +95,8 @@ const ROUTINES = [
         prevents: "Cervicalgia, tortícolis, cefaleas tensionales y pinzamientos cervicales.",
         duration: 50,
         svgKey: "cuello",
-        desc: "Inclina la oreja hacia el hombro manteniendo el hombro contrario abajo (25s cada lado, sin forzar)."
+        desc: "Inclina la oreja hacia el hombro manteniendo el hombro contrario abajo (25s cada lado, sin forzar).",
+        breath: "Respira suave y continuo, sin contener el aire. Nunca empujes la cabeza con la mano ni hagas giros bruscos del cuello."
       },
       {
         name: "Rotación suave de torso (columna torácica)",
@@ -97,7 +105,8 @@ const ROUTINES = [
         prevents: "Rigidez dorsal y lesiones por giros repetitivos al mover o apilar cargas.",
         duration: 50,
         svgKey: "rotacion",
-        desc: "Cruza los brazos sobre el pecho, mantén la cadera fija al frente y gira suavemente el torso de un lado a otro."
+        desc: "Cruza los brazos sobre el pecho, mantén la cadera fija al frente y gira suavemente el torso de un lado a otro.",
+        breath: "Exhala al girar e inhala al volver al centro. Gira solo hasta donde sea cómodo y mantén la cadera y los pies fijos al frente."
       },
       {
         name: "Apertura pectoral (manos entrelazadas atrás)",
@@ -106,7 +115,8 @@ const ROUTINES = [
         prevents: "Hombros caídos (cifosis postural), sobrecarga dorsal y compresión de hombros.",
         duration: 50,
         svgKey: "pectoral",
-        desc: "Entrelaza las manos detrás de la espalda, junta los omóplatos y abre el pecho respirando profundo."
+        desc: "Entrelaza las manos detrás de la espalda, junta los omóplatos y abre el pecho respirando profundo.",
+        breath: "Inhala profundo al abrir el pecho y exhala al soltar. No fuerces los hombros hacia atrás si sientes tirón en la parte delantera."
       },
       {
         name: "Estiramiento dorsal (abrazo al frente)",
@@ -115,7 +125,8 @@ const ROUTINES = [
         prevents: "Dorsalgia, espasmos entre escápulas y fatiga por levantar o empujar cargas.",
         duration: 50,
         svgKey: "dorsal",
-        desc: "Estira los brazos al frente entrelazando dedos, redondea suavemente la espalda alta y empuja hacia adelante."
+        desc: "Estira los brazos al frente entrelazando dedos, redondea suavemente la espalda alta y empuja hacia adelante.",
+        breath: "Exhala al empujar los brazos al frente redondeando la espalda alta e inhala al volver. Sin tirones ni rebotes."
       },
       {
         name: "Inclinación lateral de tronco",
@@ -124,7 +135,8 @@ const ROUTINES = [
         prevents: "Sobrecarga lateral de espalda por manejo de cargas asimétricas.",
         duration: 50,
         svgKey: "lateral",
-        desc: "Eleva un brazo sobre la cabeza e inclina el tronco suavemente hacia el lado contrario (25s por lado)."
+        desc: "Eleva un brazo sobre la cabeza e inclina el tronco suavemente hacia el lado contrario (25s por lado).",
+        breath: "Inhala al elevar el brazo y exhala al inclinarte. Mantén los dos pies firmes en el piso y no te vayas hacia adelante."
       }
     ]
   },
@@ -141,7 +153,8 @@ const ROUTINES = [
         prevents: "Rigidez pélvica, ciática por tensión muscular y bloqueo lumbar.",
         duration: 50,
         svgKey: "cadera",
-        desc: "Con rodillas ligeramente flexionadas, realiza círculos suaves con la cadera (25s a cada lado)."
+        desc: "Con rodillas ligeramente flexionadas, realiza círculos suaves con la cadera (25s a cada lado).",
+        breath: "Respira de forma continua y relajada. Círculos pequeños y controlados; si molesta la espalda baja, reduce el recorrido."
       },
       {
         name: "Sentadilla parcial controlada (sin peso)",
@@ -150,7 +163,8 @@ const ROUTINES = [
         prevents: "Sobrecarga lumbar y fatiga por bipedestación prolongada.",
         duration: 50,
         svgKey: "sentadilla",
-        desc: "Flexiona suavemente las rodillas manteniendo la espalda recta y los talones apoyados en el piso."
+        desc: "Flexiona suavemente las rodillas manteniendo la espalda recta y los talones apoyados en el piso.",
+        breath: "Inhala al bajar y exhala al subir. Espalda recta, talones apoyados y rodillas alineadas con la punta de los pies."
       },
       {
         name: "Estiramiento de isquiotibiales (talón al frente)",
@@ -159,7 +173,8 @@ const ROUTINES = [
         prevents: "Desgarros posteriores de muslo, tirón lumbar y acortamiento muscular.",
         duration: 50,
         svgKey: "isquios",
-        desc: "Adelanta un pie apoyando el talón, flexiona ligeramente la otra rodilla e inclina el tronco con espalda recta (25s por lado)."
+        desc: "Adelanta un pie apoyando el talón, flexiona ligeramente la otra rodilla e inclina el tronco con espalda recta (25s por lado).",
+        breath: "Exhala al inclinar el tronco y respira lento mientras sostienes. Espalda recta: no redondees la espalda ni rebotes."
       },
       {
         name: "Estiramiento de gemelos (paso largo)",
@@ -168,7 +183,8 @@ const ROUTINES = [
         prevents: "Tendinitis aquiliana, fascitis plantar, espolón y calambres nocturnos.",
         duration: 50,
         svgKey: "gemelos",
-        desc: "Da un paso atrás manteniendo el talón trasero pegado al piso y flexiona la rodilla delantera (25s por lado)."
+        desc: "Da un paso atrás manteniendo el talón trasero pegado al piso y flexiona la rodilla delantera (25s por lado).",
+        breath: "Respira profundo y sostenido mientras estiras. El talón de atrás no se levanta; si molesta el tendón, acorta el paso."
       },
       {
         name: "Rotación de tobillos",
@@ -177,7 +193,8 @@ const ROUTINES = [
         prevents: "Esguinces de tobillo, rigidez articular y fatiga en la planta del pie.",
         duration: 50,
         svgKey: "tobillos",
-        desc: "Apoya la punta del pie en el suelo y haz círculos amplios con el tobillo (25s pie derecho y 25s pie izquierdo)."
+        desc: "Apoya la punta del pie en el suelo y haz círculos amplios con el tobillo (25s pie derecho y 25s pie izquierdo).",
+        breath: "Respiración normal y relajada. Círculos amplios pero sin forzar; apóyate en algo firme si pierdes estabilidad."
       },
       {
         name: "Elevación de talones (bombeo venoso)",
@@ -186,7 +203,8 @@ const ROUTINES = [
         prevents: "Hinchazón de piernas, várices y sensación de pesadez.",
         duration: 50,
         svgKey: "talones",
-        desc: "Sube y baja en puntas de pies de forma controlada para reactivar la circulación."
+        desc: "Sube y baja en puntas de pies de forma controlada para reactivar la circulación.",
+        breath: "Inhala al subir en puntas y exhala al bajar. Movimiento continuo, sin rebotes ni golpes de talón."
       }
     ]
   },
@@ -203,7 +221,8 @@ const ROUTINES = [
         prevents: "Síndrome del túnel carpiano, tendinitis de muñeca y epicondilitis (codo de tenista).",
         duration: 50,
         svgKey: "muneca",
-        desc: "Brazo extendido al frente, lleva suavemente los dedos hacia atrás y luego hacia abajo (25s por brazo)."
+        desc: "Brazo extendido al frente, lleva suavemente los dedos hacia atrás y luego hacia abajo (25s por brazo).",
+        breath: "Respira lento y sostén el estiramiento sin contener el aire. Presión suave con la mano; si sientes hormigueo, suelta de inmediato."
       },
       {
         name: "Pronosupinación de antebrazos",
@@ -212,7 +231,8 @@ const ROUTINES = [
         prevents: "Epicondilitis (codo de tenista), epitrocleítis y sobrecarga por uso de herramientas o agarre.",
         duration: 50,
         svgKey: "pronosupinacion",
-        desc: "Con los codos pegados al costado en 90 grados, gira las palmas hacia arriba y hacia abajo de forma lenta y controlada."
+        desc: "Con los codos pegados al costado en 90 grados, gira las palmas hacia arriba y hacia abajo de forma lenta y controlada.",
+        breath: "Respiración normal y pareja. Codos pegados al costado: el giro sale del antebrazo, no del hombro."
       },
       {
         name: "Abrir y cerrar manos con extensión de dedos",
@@ -221,7 +241,8 @@ const ROUTINES = [
         prevents: "Dedo en gatillo, tenosinovitis de De Quervain y entumecimiento en manos.",
         duration: 50,
         svgKey: "manos",
-        desc: "Abre los dedos lo máximo posible durante 3 segundos y cierra en puño suave. Repite de forma continua."
+        desc: "Abre los dedos lo máximo posible durante 3 segundos y cierra en puño suave. Repite de forma continua.",
+        breath: "Exhala al abrir los dedos e inhala al cerrar. El puño se cierra suave, sin apretar con fuerza."
       },
       {
         name: "Rotación suave de torso (columna torácica)",
@@ -230,7 +251,8 @@ const ROUTINES = [
         prevents: "Rigidez de espalda al cierre de la jornada y contracturas dorsales.",
         duration: 50,
         svgKey: "rotacion",
-        desc: "Con brazos cruzados al pecho, gira suavemente el tronco hacia derecha e izquierda sin mover la cadera."
+        desc: "Con brazos cruzados al pecho, gira suavemente el tronco hacia derecha e izquierda sin mover la cadera.",
+        breath: "Exhala al girar e inhala al volver al centro. La cadera queda fija al frente y el movimiento es lento."
       },
       {
         name: "Inclinación lateral de tronco",
@@ -239,7 +261,8 @@ const ROUTINES = [
         prevents: "Sobrecarga lateral de espalda, escoliosis funcional y fatiga por cargas asimétricas.",
         duration: 50,
         svgKey: "lateral",
-        desc: "Eleva un brazo sobre la cabeza e inclina el tronco suavemente hacia el lado contrario (25s por lado)."
+        desc: "Eleva un brazo sobre la cabeza e inclina el tronco suavemente hacia el lado contrario (25s por lado).",
+        breath: "Inhala al subir el brazo y exhala al inclinarte. Sin rebotes y sin despegar los pies del piso."
       },
       {
         name: "Respiración diafragmática profunda",
@@ -248,7 +271,8 @@ const ROUTINES = [
         prevents: "Fatiga física acumulada, estrés laboral, hiperventilación y tensión muscular general.",
         duration: 50,
         svgKey: "respiracion",
-        desc: "Inhala profundo en 4 segundos elevando brazos, sostén 2 segundos y exhala lento en 6 segundos bajando brazos."
+        desc: "Inhala profundo en 4 segundos elevando brazos, sostén 2 segundos y exhala lento en 6 segundos bajando brazos.",
+        breath: "Inhala por la nariz en 4 tiempos, sostén 2 y exhala por la boca en 6. Si sientes mareo, respira normal y siéntate."
       }
     ]
   }
