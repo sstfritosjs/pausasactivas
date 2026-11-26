@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="icon" href="icon-192.png" />
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body>
   <div id="sync-bar" class="sync-bar hidden" role="status" aria-live="polite">
@@ -62,6 +62,8 @@
             <button type="button" id="btn-my-history" class="btn btn-outline btn-lg hidden">Ver mi historial de pausas</button>
           </form>
 
+          <button type="button" id="btn-group-mode" class="btn btn-secondary btn-lg" style="margin-top:0.65rem;">Modo grupal · dirigido por un líder</button>
+
           <div class="kiosk-footer-row">
             <label class="toggle-label">
               <input type="checkbox" id="chk-sound" checked /> Alerta sonora (inicio y fin)
@@ -103,8 +105,10 @@
         </div>
       </div>
 
-      <!-- REPRODUCTOR DE PAUSA ACTIVA GUIADA -->
-      <div id="guided-player" class="card player-card hidden">
+    </section>
+
+    <!-- REPRODUCTOR DE PAUSA ACTIVA GUIADA -->
+    <div id="guided-player" class="card player-card hidden">
         <div class="player-header">
           <div>
             <span class="badge badge-active">PAUSA ACTIVA EN CURSO</span>
@@ -152,6 +156,71 @@
               <div class="progress-fill" id="player-progress-fill"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+    <!-- ========================================== -->
+    <!-- MODO GRUPAL (LÍDER DIRIGE LA PAUSA)        -->
+    <!-- ========================================== -->
+    <section id="group-view" class="hidden">
+      <div class="card" id="group-setup">
+        <div class="card-header">
+          <h2>Pausa activa grupal</h2>
+          <div class="header-actions">
+            <button id="btn-fullscreen" class="btn btn-outline btn-sm">Pantalla completa</button>
+            <button id="btn-exit-group" class="btn btn-accent btn-sm">Salir</button>
+          </div>
+        </div>
+        <p class="muted">El líder pone la rutina en pantalla, el grupo la realiza y al terminar se marca quiénes participaron.</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="group-block">Rutina a realizar</label>
+            <select id="group-block"></select>
+          </div>
+          <div class="form-group">
+            <label for="group-leader">Líder que dirige (opcional)</label>
+            <input type="text" id="group-leader" list="staff-datalist" placeholder="Cédula o nombre" autocomplete="off" />
+            <datalist id="staff-datalist"></datalist>
+          </div>
+          <div class="form-group">
+            <label for="group-area">Área que participa</label>
+            <select id="group-area"><option value="">Todas las áreas</option></select>
+          </div>
+        </div>
+
+        <button id="btn-start-group" class="btn btn-accent btn-lg">▶ Iniciar pausa grupal</button>
+        <button id="btn-group-skip-to-list" class="btn btn-outline btn-lg" style="margin-top:0.6rem;">Ya la hicimos · solo marcar asistencia</button>
+      </div>
+
+      <div id="group-checklist" class="card hidden">
+        <div class="card-header">
+          <h2>¿Quiénes hicieron la pausa?</h2>
+          <span class="badge badge-active" id="group-count">0 marcados</span>
+        </div>
+        <p class="muted" id="group-routine-label"></p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="group-search">Buscar</label>
+            <input type="text" id="group-search" placeholder="Cédula o nombre..." autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="group-filter-area">Área</label>
+            <select id="group-filter-area"><option value="">Todas las áreas</option></select>
+          </div>
+        </div>
+
+        <div class="header-actions" style="margin-bottom:0.8rem;">
+          <button id="btn-group-all" class="btn btn-outline btn-sm">Marcar todos los visibles</button>
+          <button id="btn-group-none" class="btn btn-outline btn-sm">Quitar todos</button>
+        </div>
+
+        <div id="group-list" class="group-list"></div>
+
+        <div class="group-actions">
+          <button id="btn-group-cancel" class="btn btn-outline">Cancelar</button>
+          <button id="btn-group-save" class="btn btn-primary btn-lg">Guardar asistencia</button>
         </div>
       </div>
     </section>
@@ -503,6 +572,22 @@
 
             <hr class="divider" />
 
+            <h3>Clave de Líder de Pausa Grupal</h3>
+            <p class="muted">Clave aparte para supervisores: les permite dirigir pausas grupales y marcar asistencia, <strong>sin</strong> darles acceso al panel de administrador. Si la dejas vacía, el modo grupal pedirá la clave de administrador.</p>
+            <form id="form-leader-pass" class="stack-form">
+              <div class="form-group">
+                <label for="cfg-leader-pass">Nueva clave de líder (mínimo 4 caracteres)</label>
+                <input type="password" id="cfg-leader-pass" minlength="4" placeholder="Dejar vacío para no cambiarla" />
+              </div>
+              <div class="header-actions">
+                <button type="submit" class="btn btn-secondary btn-sm">Guardar clave de líder</button>
+                <button type="button" id="btn-clear-leader-pass" class="btn btn-danger-outline btn-sm">Eliminar clave de líder</button>
+              </div>
+              <div id="leader-pass-feedback" class="feedback hidden"></div>
+            </form>
+
+            <hr class="divider" />
+
             <h3>Copia de Seguridad (Respaldo Local)</h3>
             <p class="muted">Descarga o restaura todo el personal, historial y configuración en un archivo <code>.json</code>.</p>
             <div class="header-actions">
@@ -533,6 +618,46 @@
       </div>
     </section>
   </main>
+
+  <!-- MODAL: ACCESO AL MODO GRUPAL -->
+  <div id="group-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h2>Modo grupal</h2>
+      <p class="muted">Ingresa la clave de líder (o la de administrador) para dirigir una pausa grupal y registrar la asistencia del equipo.</p>
+      <form id="form-group-login">
+        <div class="form-group">
+          <label for="group-pass-input">Clave</label>
+          <input type="password" id="group-pass-input" required />
+        </div>
+        <div id="group-login-error" class="error-text hidden">Clave incorrecta. Intenta nuevamente.</div>
+        <div class="modal-actions">
+          <button type="button" id="btn-cancel-group" class="btn btn-outline">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Entrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: MOLESTIA DE UNA PERSONA EN MODO GRUPAL -->
+  <div id="group-segment-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="text-align:center;">
+      <h2>Molestia reportada</h2>
+      <p class="muted" id="group-segment-name"></p>
+      <div class="segment-buttons">
+        <button type="button" class="btn-group-segment" data-segment="Cuello">Cuello</button>
+        <button type="button" class="btn-group-segment" data-segment="Hombros">Hombros</button>
+        <button type="button" class="btn-group-segment" data-segment="Espalda alta">Espalda alta</button>
+        <button type="button" class="btn-group-segment" data-segment="Espalda baja">Espalda baja</button>
+        <button type="button" class="btn-group-segment" data-segment="Brazos o muñecas">Brazos o muñecas</button>
+        <button type="button" class="btn-group-segment" data-segment="Piernas o rodillas">Piernas o rodillas</button>
+        <button type="button" class="btn-group-segment" data-segment="Pies">Pies</button>
+        <button type="button" class="btn-group-segment" data-segment="Prefiero no decir">Prefiero no decir</button>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="btn-group-segment-clear" class="btn btn-outline">Quitar la molestia</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: AVISO DE RECOMENDACIONES MÉDICAS -->
   <div id="medical-modal" class="modal-overlay hidden">
@@ -605,8 +730,8 @@
   </div>
 
   <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-  <script src="illustrations.js?v=4"></script>
-  <script src="routines.js?v=4"></script>
-  <script src="app.js?v=4"></script>
+  <script src="illustrations.js?v=5"></script>
+  <script src="routines.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

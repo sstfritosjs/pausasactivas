@@ -1,6 +1,6 @@
-# Pausas Activas SST · v4
+# Pausas Activas SST · v5
 
-App web para GitHub Pages con **base de datos compartida en Google Sheets**, **dos turnos de 12 horas**, historial propio para cada trabajador y vigilancia de molestias osteomusculares. Funciona **sin señal** y se instala en el celular como aplicación.
+App web para GitHub Pages con **base de datos compartida en Google Sheets**, **modo grupal dirigido por un líder**, **dos turnos de 12 horas**, historial propio para cada trabajador y vigilancia de molestias osteomusculares. Funciona **sin señal** y se instala en el celular como aplicación.
 
 ---
 
@@ -10,6 +10,33 @@ En el despliegue actual **falta la carpeta `img/`**: por eso en los celulares sa
 
 Sube la carpeta `img/` completa (11 archivos .jpg) a la raíz del repositorio, al mismo nivel que `index.html`. Verifica abriendo:
 `https://sstfritosjs.github.io/pausasactivas/img/manos.jpg` — debe mostrar la foto, no un error 404.
+
+---
+
+---
+
+## Modo grupal (un líder dirige y luego marca la asistencia)
+
+Pensado para una tablet, un computador o un televisor en planta.
+
+1. En la pantalla principal: **Modo grupal · dirigido por un líder**. Pide clave (ver abajo).
+2. El líder elige la **rutina** (viene marcada la que corresponde a la hora), opcionalmente **quién dirige** y el **área** que participa.
+3. **Iniciar pausa grupal**: la rutina corre en pantalla con voz y sonido, igual que la individual pero sin pedir cédula. El botón **Pantalla completa** la deja lista para proyectar.
+4. Al terminar aparece **¿Quiénes hicieron la pausa?**: la lista del personal con casillas grandes, buscador, filtro por área y **Marcar todos los visibles**.
+5. El botón naranja **!** de cada fila sirve para registrar que esa persona reportó **molestia** y en qué segmento corporal.
+6. **Guardar asistencia**: se crea un registro por persona, todos en un solo envío a Google Sheets.
+
+También está el atajo **"Ya la hicimos · solo marcar asistencia"**, para cuando la pausa se hizo sin la pantalla.
+
+### Lo que protege el dato
+- Quien ya registró una pausa dentro del intervalo mínimo aparece **bloqueado y gris**, con los minutos que le faltan. No se puede marcar ni con "Marcar todos". Así el modo grupal no sirve para inflar el cumplimiento.
+- Cada registro guarda **Modo** (Grupal o Individual) y **Líder** que la dirigió, para que en auditoría se sepa quién certificó esa asistencia.
+- La lista señala a quien tiene **recomendación médica** registrada.
+
+### Clave de líder (recomendado)
+En **Administrador → Configuración → Clave de Líder de Pausa Grupal** defines una clave aparte para supervisores: les deja dirigir pausas y marcar asistencia **sin** darles acceso al panel de administrador. Si la dejas vacía, el modo grupal pide la clave de administrador.
+
+> Marcar la asistencia de otros es una facultad fuerte: entrégale esa clave solo a quien responda por el registro.
 
 ---
 
@@ -76,12 +103,12 @@ A partir de ahí recibes cada día cerca de las 5:00 p. m. un correo con el % de
 ### 4. Comprueba
 **Administrador → Configuración y QR → Probar conexión.** Debe decir *"Conexión correcta…"*.
 
-El script agrega la columna **Turno** al final de `Registros`, así que **tus registros actuales no se desalinean** ni se pierden. Administra tres hojas:
+El script agrega las columnas **Turno**, **Modo** y **Lider** al final de `Registros`, así que **tus registros actuales no se desalinean** ni se pierden. Administra tres hojas:
 
 | Hoja | Columnas |
 |---|---|
 | `Personal` | Documento · Nombre · Area · **Restriccion** |
-| `Registros` | Fecha · Hora · Cedula · Nombre · Area · Rutina · Bienestar · Segmento · Origen · RegistroID · **Turno** |
+| `Registros` | Fecha · Hora · Cedula · Nombre · Area · Rutina · Bienestar · Segmento · Origen · RegistroID · Turno · **Modo** · **Lider** |
 | `Config` | Parámetros compartidos (empresa, logo, meta, turnos, clave cifrada, correo SST) |
 
 ---
@@ -98,7 +125,7 @@ img/   (11 fotos · OBLIGATORIA)      README.md
 
 **Settings → Pages → Deploy from a branch → `main` / `root`.**
 
-> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v4`.
+> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v5`.
 
 ---
 

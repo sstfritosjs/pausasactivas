@@ -43,7 +43,8 @@ let settings = Object.assign({
   minGapMinutes: 60,
   sstEmail: "",
   shiftMode: "dos",
-  shifts: null
+  shifts: null,
+  leaderPassHash: ""
 }, loadJSON(STORAGE_KEYS.SETTINGS, {}));
 
 // Migración desde versiones con 4 franjas sueltas y un solo turno
@@ -443,6 +444,7 @@ function applyRemoteConfig(cfg) {
   if (cfg.qrUrl) settings.qrUrl = cfg.qrUrl;
   if (cfg.logoDataUrl) settings.logoDataUrl = cfg.logoDataUrl;
   if (cfg.adminPassHash) settings.adminPassHash = cfg.adminPassHash;
+  if (typeof cfg.leaderPassHash !== "undefined") settings.leaderPassHash = cfg.leaderPassHash;
   if (typeof cfg.minGapMinutes !== "undefined") settings.minGapMinutes = Number(cfg.minGapMinutes) || 0;
   if (cfg.shiftMode === "uno" || cfg.shiftMode === "dos") settings.shiftMode = cfg.shiftMode;
   if (cfg.shiftsJson) {
@@ -458,6 +460,27 @@ function applyRemoteConfig(cfg) {
 
 async function flushPending() {
   if (!pending.length) return;
+
+  // Una pausa grupal son muchos registros: se envían en un solo lote.
+  let lotesSoportados = true;
+  while (lotesSoportados && pending.length > 1) {
+    const lote = pending.slice(0, 20).map(r => Object.assign({}, r, {
+      queuedMs: r.createdAtMs ? Math.max(0, Date.now() - r.createdAtMs) : 0
+    }));
+    let resp = null;
+    try {
+      resp = await apiPost({ action: "addAttendanceBatch", records: lote });
+    } catch { return; }
+    if (!resp || !resp.ok) {
+      // Apps Script sin soporte de lotes: se cae al envío uno por uno
+      lotesSoportados = false;
+      break;
+    }
+    const enviados = new Set(lote.map(x => x.rid));
+    pending = pending.filter(p => !enviados.has(p.rid));
+    saveJSON(STORAGE_KEYS.PENDING, pending);
+  }
+
   for (const rec of [...pending]) {
     try {
       const envio = Object.assign({}, rec);
@@ -501,6 +524,7 @@ async function pushConfig() {
     allowSkip: Boolean(settings.allowSkip),
     qrUrl: settings.qrUrl || "",
     adminPassHash: settings.adminPassHash || "",
+    leaderPassHash: settings.leaderPassHash || "",
     minGapMinutes: Number(settings.minGapMinutes) || 0,
     shiftMode: settings.shiftMode || "dos",
     shiftsJson: JSON.stringify(allShifts()),
@@ -671,22 +695,35 @@ document.getElementById("btn-sync-kiosk").addEventListener("click", async () => 
 // ==========================================================
 // REPRODUCTOR DE PAUSA GUIADA
 // ==========================================================
-function startGuidedBreak() {
-  activeRoutine = ROUTINES[routineIndexForNow()];
+function startGuidedBreak(opciones) {
+  const op = opciones || {};
+  const ri = typeof op.routineIndex === "number" ? op.routineIndex : routineIndexForNow();
+  activeRoutine = ROUTINES[ri];
   currentExIndex = 0;
   exPaused = false;
 
   document.getElementById("guided-player").classList.remove("hidden");
   document.getElementById("player-routine-title").textContent = activeRoutine.name;
-  document.getElementById("player-participant-label").textContent =
-    `Participante: ${activeParticipant.name} (C.C. ${activeParticipant.id} · ${activeParticipant.area})`;
 
+  const etiqueta = document.getElementById("player-participant-label");
   const banner = document.getElementById("player-medical-banner");
-  if (activeParticipant.medical) {
-    banner.textContent = `Recomendación médica: ${activeParticipant.medical}. Omite cualquier ejercicio que te genere dolor.`;
+
+  if (groupMode) {
+    const area = document.getElementById("group-area").value;
+    const partes = ["PAUSA GRUPAL"];
+    if (area) partes.push(area);
+    if (groupLeaderName) partes.push("dirige " + groupLeaderName);
+    etiqueta.textContent = partes.join(" · ");
+    banner.textContent = "Cada quien realiza solo los ejercicios que pueda. Si alguien siente dolor, debe detenerse y avisar al líder.";
     banner.classList.remove("hidden");
   } else {
-    banner.classList.add("hidden");
+    etiqueta.textContent = `Participante: ${activeParticipant.name} (C.C. ${activeParticipant.id} · ${activeParticipant.area})`;
+    if (activeParticipant.medical) {
+      banner.textContent = `Recomendación médica: ${activeParticipant.medical}. Omite cualquier ejercicio que te genere dolor.`;
+      banner.classList.remove("hidden");
+    } else {
+      banner.classList.add("hidden");
+    }
   }
 
   loadExercise(0);
@@ -765,6 +802,14 @@ function finishGuidedBreak() {
   document.getElementById("player-progress-fill").style.width = "100%";
   playEndChime();
 
+  if (groupMode) {
+    document.getElementById("guided-player").classList.add("hidden");
+    activeRoutine = null;
+    speakSpanish("Pausa grupal terminada. El líder debe marcar quiénes participaron.");
+    abrirListaGrupal();
+    return;
+  }
+
   if (activeParticipant && activeRoutine) {
     const ahora = new Date();
     pendingCompletedRecord = {
@@ -778,7 +823,9 @@ function finishGuidedBreak() {
       routine: activeRoutine.name,
       shift: shiftNameForTime(ahora),
       feeling: "Bien",
-      segment: ""
+      segment: "",
+      mode: "Individual",
+      leader: ""
     };
     document.getElementById("feeling-worker-name").textContent =
       `${activeParticipant.name}, ¿cómo te sientes hoy después de tu pausa?`;
@@ -864,6 +911,10 @@ document.getElementById("btn-close-player").addEventListener("click", () => {
   activeParticipant = null;
   activeRoutine = null;
   document.getElementById("guided-player").classList.add("hidden");
+  if (groupMode) {
+    document.getElementById("group-setup").classList.remove("hidden");
+    document.getElementById("group-checklist").classList.add("hidden");
+  }
 });
 
 // ==========================================================
@@ -1406,6 +1457,12 @@ function renderStaff() {
     });
   });
 
+  const dl = document.getElementById("staff-datalist");
+  if (dl) {
+    dl.innerHTML = staff.map(p =>
+      `<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} · ${escapeHTML(p.area)}</option>`).join("");
+  }
+
   document.getElementById("staff-total-badge").textContent = staff.length;
 }
 
@@ -1581,8 +1638,8 @@ document.getElementById("btn-export-compliance").addEventListener("click", () =>
 document.getElementById("btn-export-attendance").addEventListener("click", () => {
   if (!attendance.length) { showToast("No hay registros de asistencia para exportar."); return; }
   exportExcelWorkbook([{ name: "Historial", rows: [
-    ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Turno", "Rutina", "Bienestar", "Segmento", "Origen"],
-    ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, shiftOfRecord(r), r.routine, r.feeling || "Bien", r.segment || "", r.origin || ""])
+    ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Turno", "Rutina", "Bienestar", "Segmento", "Modo", "Lider", "Origen"],
+    ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, shiftOfRecord(r), r.routine, r.feeling || "Bien", r.segment || "", r.mode || "Individual", r.leader || "", r.origin || ""])
   ]}], `historial_pausas_activas_${jornadaISO()}.xlsx`);
 });
 
@@ -1605,8 +1662,8 @@ document.getElementById("btn-export-excel-full").addEventListener("click", () =>
       ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Segmento_Corporal"],
       ...segRecs.map(r => [r.date, r.time, r.id, r.name, r.area, r.segment || "Sin especificar"])]},
     { name: "Historial_Detallado", rows: [
-      ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Turno", "Rutina", "Bienestar", "Segmento", "Origen"],
-      ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, shiftOfRecord(r), r.routine, r.feeling || "Bien", r.segment || "", r.origin || ""])]}
+      ["Fecha", "Hora", "Cedula", "Nombre", "Area", "Turno", "Rutina", "Bienestar", "Segmento", "Modo", "Lider", "Origen"],
+      ...attendance.map(r => [r.date, r.time, r.id, r.name, r.area, shiftOfRecord(r), r.routine, r.feeling || "Bien", r.segment || "", r.mode || "Individual", r.leader || "", r.origin || ""])]}
   ], `reporte_completo_sst_${dateStr}.xlsx`);
 });
 
@@ -2038,6 +2095,361 @@ let currentTipIdx = 0;
 document.getElementById("btn-next-tip").addEventListener("click", () => {
   currentTipIdx = (currentTipIdx + 1) % SST_TIPS.length;
   document.getElementById("sst-tip-text").textContent = SST_TIPS[currentTipIdx];
+});
+
+// ==========================================================
+// MODO GRUPAL
+// Un líder dirige la pausa para todo el grupo y al terminar
+// marca quiénes participaron. Pensado para una tablet o TV en planta.
+// ==========================================================
+let groupMode = false;
+let groupRoutineIndex = 0;
+let groupLeaderName = "";
+const groupSelected = new Set();
+const groupSegments = new Map();
+let groupSegmentTarget = null;
+
+async function checkGroupPass(valor) {
+  const h = await sha256Hex(valor);
+  if (settings.leaderPassHash && h === settings.leaderPassHash) return true;
+  return await checkAdminPass(valor);
+}
+
+function fillGroupSelectors() {
+  const sel = document.getElementById("group-block");
+  const actual = routineIndexForNow();
+  const previo = sel.value;
+  sel.innerHTML = ROUTINES.map((r, i) =>
+    `<option value="${i}">${escapeHTML(r.name)}${i === actual ? " — corresponde ahora" : ""}</option>`
+  ).join("");
+  sel.value = previo !== "" && ROUTINES[previo] ? previo : String(actual);
+
+  const areas = [...new Set(staff.map(p => p.area))].filter(Boolean).sort();
+  const opciones = `<option value="">Todas las áreas</option>` +
+    areas.map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join("");
+
+  const sArea = document.getElementById("group-area");
+  const prevA = sArea.value;
+  sArea.innerHTML = opciones;
+  sArea.value = prevA;
+
+  const sFiltro = document.getElementById("group-filter-area");
+  const prevF = sFiltro.value;
+  sFiltro.innerHTML = opciones;
+  sFiltro.value = prevF;
+}
+
+function enterGroupMode() {
+  groupMode = true;
+  groupSelected.clear();
+  groupSegments.clear();
+  fillGroupSelectors();
+  document.getElementById("kiosk-view").classList.add("hidden");
+  document.getElementById("worker-view").classList.add("hidden");
+  document.getElementById("guided-player").classList.add("hidden");
+  document.getElementById("group-view").classList.remove("hidden");
+  document.getElementById("group-setup").classList.remove("hidden");
+  document.getElementById("group-checklist").classList.add("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function exitGroupMode() {
+  groupMode = false;
+  clearInterval(exInterval);
+  activeRoutine = null;
+  activeParticipant = null;
+  groupSelected.clear();
+  groupSegments.clear();
+  document.getElementById("guided-player").classList.add("hidden");
+  document.getElementById("group-view").classList.add("hidden");
+  document.getElementById("kiosk-view").classList.remove("hidden");
+}
+
+document.getElementById("btn-group-mode").addEventListener("click", () => {
+  document.getElementById("group-pass-input").value = "";
+  document.getElementById("group-login-error").classList.add("hidden");
+  document.getElementById("group-modal").classList.remove("hidden");
+  document.getElementById("group-pass-input").focus();
+});
+
+document.getElementById("btn-cancel-group").addEventListener("click", () => {
+  document.getElementById("group-modal").classList.add("hidden");
+});
+
+document.getElementById("form-group-login").addEventListener("submit", async e => {
+  e.preventDefault();
+  const val = document.getElementById("group-pass-input").value.trim();
+  if (await checkGroupPass(val)) {
+    document.getElementById("group-modal").classList.add("hidden");
+    enterGroupMode();
+  } else {
+    document.getElementById("group-login-error").classList.remove("hidden");
+  }
+});
+
+document.getElementById("btn-exit-group").addEventListener("click", exitGroupMode);
+
+document.getElementById("btn-fullscreen").addEventListener("click", () => {
+  const el = document.documentElement;
+  try {
+    if (!document.fullscreenElement) {
+      (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || function () {}).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
+    }
+  } catch {}
+});
+
+function leerLiderGrupal() {
+  const texto = (document.getElementById("group-leader").value || "").trim();
+  if (!texto) return "";
+  const persona = findPerson(texto) ||
+    staff.find(p => String(p.name).toLowerCase() === texto.toLowerCase());
+  return persona ? persona.name : texto;
+}
+
+document.getElementById("btn-start-group").addEventListener("click", () => {
+  if (!staff.length) { showToast("Aún no hay personal cargado en la base."); return; }
+  groupRoutineIndex = Number(document.getElementById("group-block").value) || 0;
+  groupLeaderName = leerLiderGrupal();
+  document.getElementById("group-setup").classList.add("hidden");
+  startGuidedBreak({ routineIndex: groupRoutineIndex });
+});
+
+document.getElementById("btn-group-skip-to-list").addEventListener("click", () => {
+  if (!staff.length) { showToast("Aún no hay personal cargado en la base."); return; }
+  groupRoutineIndex = Number(document.getElementById("group-block").value) || 0;
+  groupLeaderName = leerLiderGrupal();
+  abrirListaGrupal();
+});
+
+function abrirListaGrupal() {
+  document.getElementById("group-setup").classList.add("hidden");
+  document.getElementById("group-checklist").classList.remove("hidden");
+  document.getElementById("group-view").classList.remove("hidden");
+
+  const area = document.getElementById("group-area").value;
+  if (area) document.getElementById("group-filter-area").value = area;
+
+  const hora = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+  document.getElementById("group-routine-label").textContent =
+    `${ROUTINES[groupRoutineIndex].name} · ${hora}` + (groupLeaderName ? ` · dirige ${groupLeaderName}` : "");
+
+  renderGroupList();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function actualizarConteoGrupal() {
+  const n = groupSelected.size;
+  document.getElementById("group-count").textContent = `${n} marcado${n === 1 ? "" : "s"}`;
+  document.getElementById("btn-group-save").textContent =
+    n > 0 ? `Guardar asistencia de ${n}` : "Guardar asistencia";
+}
+
+function personalFiltradoGrupal() {
+  const q = document.getElementById("group-search").value.trim().toLowerCase();
+  const area = document.getElementById("group-filter-area").value;
+  return staff.filter(p => {
+    if (area && p.area !== area) return false;
+    if (q && !(String(p.id).toLowerCase().includes(q) || String(p.name).toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+function renderGroupList() {
+  const cont = document.getElementById("group-list");
+  const lista = personalFiltradoGrupal();
+
+  if (!lista.length) {
+    cont.innerHTML = `<p class="muted">No hay colaboradores con ese filtro.</p>`;
+    actualizarConteoGrupal();
+    return;
+  }
+
+  cont.innerHTML = lista.map(p => {
+    const id = String(p.id);
+    const espera = cooldownMinutes(p.id);
+    const marcado = groupSelected.has(id);
+    const seg = groupSegments.get(id);
+    return `<div class="group-row ${marcado ? "is-on" : ""} ${espera ? "is-locked" : ""}" data-id="${escapeHTML(id)}" role="button" tabindex="0" aria-pressed="${marcado}">
+      <span class="group-check">${marcado ? "✓" : ""}</span>
+      <span class="group-info">
+        <strong>${escapeHTML(p.name)}</strong>
+        <span class="muted">C.C. ${escapeHTML(p.id)} · ${escapeHTML(p.area)}</span>
+        ${espera ? `<span class="group-note">Ya registró una pausa hace poco · faltan ${espera} min</span>` : ""}
+        ${p.medical ? `<span class="group-note group-note-med">Con recomendación médica</span>` : ""}
+        ${seg ? `<span class="group-note group-note-pain">Molestia: ${escapeHTML(seg)}</span>` : ""}
+      </span>
+      <button type="button" class="group-flag ${seg ? "is-on" : ""}" data-flag="${escapeHTML(id)}" title="Reportar molestia">!</button>
+    </div>`;
+  }).join("");
+
+  actualizarConteoGrupal();
+}
+
+document.getElementById("group-list").addEventListener("click", e => {
+  const flag = e.target.closest("[data-flag]");
+  if (flag) {
+    const id = flag.dataset.flag;
+    const p = findPerson(id);
+    groupSegmentTarget = id;
+    document.getElementById("group-segment-name").textContent = p ? p.name : id;
+    document.getElementById("group-segment-modal").classList.remove("hidden");
+    return;
+  }
+  const fila = e.target.closest(".group-row");
+  if (!fila) return;
+  const id = String(fila.dataset.id);
+  const espera = cooldownMinutes(id);
+  if (espera > 0 && !groupSelected.has(id)) {
+    showToast(`Esta persona ya registró una pausa hace poco. Podrá volver en ${espera} minuto(s).`);
+    return;
+  }
+  if (groupSelected.has(id)) {
+    groupSelected.delete(id);
+    groupSegments.delete(id);
+  } else {
+    groupSelected.add(id);
+  }
+  renderGroupList();
+});
+
+document.getElementById("group-list").addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const fila = e.target.closest(".group-row");
+  if (!fila) return;
+  e.preventDefault();
+  fila.click();
+});
+
+document.getElementById("group-search").addEventListener("input", renderGroupList);
+document.getElementById("group-filter-area").addEventListener("change", renderGroupList);
+
+document.getElementById("btn-group-all").addEventListener("click", () => {
+  personalFiltradoGrupal().forEach(p => {
+    if (cooldownMinutes(p.id) === 0) groupSelected.add(String(p.id));
+  });
+  renderGroupList();
+  showToast("Marcados todos los que pueden registrar pausa ahora.");
+});
+
+document.getElementById("btn-group-none").addEventListener("click", () => {
+  groupSelected.clear();
+  groupSegments.clear();
+  renderGroupList();
+});
+
+document.querySelectorAll(".btn-group-segment").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (!groupSegmentTarget) return;
+    groupSegments.set(groupSegmentTarget, btn.dataset.segment || "");
+    groupSelected.add(groupSegmentTarget);   // si reporta molestia, también participó
+    groupSegmentTarget = null;
+    document.getElementById("group-segment-modal").classList.add("hidden");
+    renderGroupList();
+  });
+});
+
+document.getElementById("btn-group-segment-clear").addEventListener("click", () => {
+  if (groupSegmentTarget) groupSegments.delete(groupSegmentTarget);
+  groupSegmentTarget = null;
+  document.getElementById("group-segment-modal").classList.add("hidden");
+  renderGroupList();
+});
+
+document.getElementById("btn-group-cancel").addEventListener("click", () => {
+  groupSelected.clear();
+  groupSegments.clear();
+  document.getElementById("group-checklist").classList.add("hidden");
+  document.getElementById("group-setup").classList.remove("hidden");
+});
+
+document.getElementById("btn-group-save").addEventListener("click", async () => {
+  const ids = [...groupSelected];
+  if (!ids.length) { showToast("No has marcado a nadie todavía."); return; }
+
+  const ahora = new Date();
+  const rutina = ROUTINES[groupRoutineIndex].name;
+  const turno = shiftNameForTime(ahora);
+  const nuevos = [];
+  let omitidos = 0;
+
+  ids.forEach(id => {
+    const p = findPerson(id);
+    if (!p) return;
+    if (cooldownMinutes(p.id) > 0) { omitidos++; return; }   // no infla el cumplimiento
+    const seg = groupSegments.get(String(p.id)) || "";
+    nuevos.push({
+      rid: makeRid(),
+      createdAtMs: Date.now(),
+      date: jornadaISO(ahora),
+      time: `${pad2(ahora.getHours())}:${pad2(ahora.getMinutes())}`,
+      id: p.id, name: p.name, area: p.area,
+      routine: rutina,
+      shift: turno,
+      feeling: seg ? "Con molestia física" : "Bien",
+      segment: seg,
+      mode: "Grupal",
+      leader: groupLeaderName || ""
+    });
+  });
+
+  if (!nuevos.length) {
+    showToast(`Nadie quedó registrado: ${omitidos} ya tenían una pausa reciente.`);
+    return;
+  }
+
+  nuevos.forEach(r => attendance.unshift(r));
+  attendance.sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
+  saveJSON(STORAGE_KEYS.ATTENDANCE, attendance);
+  nuevos.forEach(r => pending.push(r));
+  saveJSON(STORAGE_KEYS.PENDING, pending);
+
+  groupSelected.clear();
+  groupSegments.clear();
+  document.getElementById("group-checklist").classList.add("hidden");
+  document.getElementById("group-setup").classList.remove("hidden");
+  refreshAll();
+  fillGroupSelectors();
+
+  setSyncState(true, `Guardando ${nuevos.length} registros en la base compartida...`);
+  await flushPending();
+  setSyncState(false);
+  renderSyncInfo();
+
+  showToast(`${nuevos.length} asistencia(s) registradas` +
+    (omitidos ? ` · ${omitidos} omitida(s) por tener una pausa reciente` : "") + ".");
+});
+
+// Clave de líder (permite dirigir pausas grupales sin acceso al panel)
+document.getElementById("form-leader-pass").addEventListener("submit", async e => {
+  e.preventDefault();
+  const fb = document.getElementById("leader-pass-feedback");
+  const val = document.getElementById("cfg-leader-pass").value.trim();
+  const msg = (t, err = false) => {
+    fb.textContent = t;
+    fb.classList.remove("hidden");
+    fb.style.background = err ? "#fef2f2" : "#ecfdf5";
+    fb.style.color = err ? "#991b1b" : "#065f46";
+    fb.style.borderColor = err ? "#fecaca" : "#a7f3d0";
+    showToast(t);
+  };
+  if (val.length < 4) return msg("La clave de líder debe tener al menos 4 caracteres.", true);
+
+  settings.leaderPassHash = await sha256Hex(val);
+  saveJSON(STORAGE_KEYS.SETTINGS, settings);
+  e.target.reset();
+  const ok = await pushConfig();
+  msg(ok ? "Clave de líder guardada para todos los dispositivos."
+         : "Clave de líder guardada solo en este dispositivo.");
+});
+
+document.getElementById("btn-clear-leader-pass").addEventListener("click", async () => {
+  settings.leaderPassHash = "";
+  saveJSON(STORAGE_KEYS.SETTINGS, settings);
+  const ok = await pushConfig();
+  showToast(ok ? "Clave de líder eliminada. El modo grupal pedirá la de administrador."
+               : "Clave de líder eliminada en este dispositivo.");
 });
 
 // ==========================================================

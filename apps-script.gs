@@ -19,7 +19,7 @@ var MAX_RECORDS = 6000;
 var HORA_RESUMEN = 17;                 // Hora del correo de cierre de turno
 
 var HEAD_STAFF = ['Documento', 'Nombre', 'Area', 'Restriccion'];
-var HEAD_ATT   = ['Fecha', 'Hora', 'Cedula', 'Nombre', 'Area', 'Rutina', 'Bienestar', 'Segmento', 'Origen', 'RegistroID', 'Turno'];
+var HEAD_ATT   = ['Fecha', 'Hora', 'Cedula', 'Nombre', 'Area', 'Rutina', 'Bienestar', 'Segmento', 'Origen', 'RegistroID', 'Turno', 'Modo', 'Lider'];
 var HEAD_CFG   = ['Clave', 'Valor'];
 
 /* ---------------- Utilidades ---------------- */
@@ -129,7 +129,8 @@ function readAttendance_() {
       return {
         date: txt_(r[0]), time: hora_(r[1]), id: txt_(r[2]), name: txt_(r[3]),
         area: txt_(r[4]), routine: txt_(r[5]), feeling: txt_(r[6]) || 'Bien',
-        segment: txt_(r[7]), origin: txt_(r[8]), rid: txt_(r[9]), shift: txt_(r[10])
+        segment: txt_(r[7]), origin: txt_(r[8]), rid: txt_(r[9]), shift: txt_(r[10]),
+        mode: txt_(r[11]) || 'Individual', leader: txt_(r[12])
       };
     })
     .filter(function (r) { return r.id && r.date; });
@@ -202,35 +203,61 @@ function saveStaff_(list, removeIds, mode) {
  * la cola (una resta de su propio reloj, inmune a que el reloj este mal).
  * El servidor calcula el momento real = ahora - queuedMs.
  */
-function addAttendance_(rec, cfg) {
-  if (!rec || !rec.id) return false;
-  var sh = sheet_(SH_ATT, HEAD_ATT);
-  var rid = txt_(rec.rid) || ('r' + new Date().getTime());
-
+/* RegistroID ya presentes en la hoja (una sola lectura) */
+function ridsExistentes_(sh) {
+  var mapa = {};
   var last = sh.getLastRow();
   if (last > 1) {
-    var existing = sh.getRange(2, 10, last - 1, 1).getValues();
-    for (var i = 0; i < existing.length; i++) {
-      if (txt_(existing[i][0]) === rid) return true;   // reenvio: no duplica
+    var col = sh.getRange(2, 10, last - 1, 1).getValues();
+    for (var i = 0; i < col.length; i++) {
+      var v = txt_(col[i][0]);
+      if (v) mapa[v] = true;
     }
   }
+  return mapa;
+}
 
+function filaDeRegistro_(rec, cfg, rid) {
   var queued = Number(rec.queuedMs) || 0;
   if (queued < 0 || queued > 1000 * 60 * 60 * 24 * 14) queued = 0;
   var real = new Date(new Date().getTime() - queued);
   var origen = queued > 1000 * 60 * 10 ? 'Diferido' : 'En linea';
-
-  var row = Math.max(sh.getLastRow(), 1) + 1;
-  var rng = sh.getRange(row, 1, 1, HEAD_ATT.length);
-  rng.setNumberFormat('@');
-  rng.setValues([[
+  return [
     jornadaISO_(real, cfg && cfg.shiftStartHour),
     horaDe_(real),
     txt_(rec.id), txt_(rec.name), txt_(rec.area), txt_(rec.routine),
     txt_(rec.feeling) || 'Bien', txt_(rec.segment), origen, rid,
-    turnoDe_(real, cfg || {})
-  ]]);
-  return true;
+    turnoDe_(real, cfg || {}), txt_(rec.mode) || 'Individual', txt_(rec.leader)
+  ];
+}
+
+/* Escribe varios registros de una sola vez: una pausa grupal completa
+   se guarda con una lectura y una escritura, no una por persona. */
+function addAttendanceLote_(lista, cfg) {
+  var sh = sheet_(SH_ATT, HEAD_ATT);
+  var vistos = ridsExistentes_(sh);
+  var filas = [];
+
+  for (var i = 0; i < (lista || []).length; i++) {
+    var rec = lista[i];
+    if (!rec || !rec.id) continue;
+    var rid = txt_(rec.rid) || ('r' + new Date().getTime() + '_' + i);
+    if (vistos[rid]) continue;          // reenvio: no duplica
+    vistos[rid] = true;
+    filas.push(filaDeRegistro_(rec, cfg, rid));
+  }
+
+  if (!filas.length) return 0;
+  var row = Math.max(sh.getLastRow(), 1) + 1;
+  var rng = sh.getRange(row, 1, filas.length, HEAD_ATT.length);
+  rng.setNumberFormat('@');
+  rng.setValues(filas);
+  return filas.length;
+}
+
+function addAttendance_(rec, cfg) {
+  if (!rec || !rec.id) return false;
+  return addAttendanceLote_([rec], cfg) >= 0;
 }
 
 function saveConfig_(cfg) {
@@ -301,6 +328,10 @@ function handle_(params, body) {
     if (action === 'addAttendance') {
       addAttendance_(data.record || data, cfg);
       return json_({ ok: true, action: action });
+    }
+    if (action === 'addAttendanceBatch') {
+      var guardados = addAttendanceLote_(data.records || [], cfg);
+      return json_({ ok: true, action: action, saved: guardados });
     }
     if (action === 'saveStaff') {
       var n = saveStaff_(data.staff, data.removeIds, data.mode);
