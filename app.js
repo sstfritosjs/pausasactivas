@@ -258,7 +258,7 @@ const ROUTINES = [
 // ==========================================
 const ADMIN_PASS = "admin123";
 // Pega aquí tu URL de Google Apps Script (/exec) para que TODOS los celulares sincronicen el personal automáticamente:
-const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyI-cy6u02mW0hcJLxtEJLtEOptv6OoYoq_2uyneZ6bGC1naGwQJ7B42SGFa2yBwV4v/exec";
+const DEFAULT_SHEETS_URL = "";
 const STORAGE_KEYS = {
   STAFF: "pausas_sst_staff_v1",
   ATTENDANCE: "pausas_sst_attendance_v1",
@@ -275,6 +275,7 @@ let settings = loadJSON(STORAGE_KEYS.SETTINGS, {
   sheetsUrl: DEFAULT_SHEETS_URL,
   allowSkip: false,
   qrUrl: "",
+  dailyGoal: 3,
   adminPass: ADMIN_PASS
 });
 if (!settings.sheetsUrl && DEFAULT_SHEETS_URL) {
@@ -528,9 +529,10 @@ cedulaInput.addEventListener("input", () => {
     const today = todayISO();
     const myToday = attendance.filter(r =>r.date === today && r.id === found.id);
     const lastTime = myToday.length > 0 ? myToday[0].time : null;
+    const goal = Number(settings.dailyGoal) || 3;
     const progressText = myToday.length > 0
-      ? `Hoy llevas <strong>${myToday.length} de 4</strong> pausas (última a las ${lastTime}).`
-      : `Hoy llevas <strong>0 de 4</strong> pausas realizadas.`;
+      ? `Hoy llevas <strong>${myToday.length} de ${goal}</strong> pausas (última a las ${lastTime}).`
+      : `Hoy llevas <strong>0 de ${goal}</strong> pausas realizadas.`;
     cedulaPreview.className = "cedula-preview";
     cedulaPreview.innerHTML = ` <strong>${escapeHTML(found.name)}</strong> · ${escapeHTML(found.area)}<br/><span style="font-size:0.82rem;">${progressText}</span>`;
   } else {
@@ -1269,6 +1271,7 @@ function applyBranding() {
 
   // Cargar valores en formulario de configuración
   document.getElementById("cfg-company").value = settings.companyName || "";
+  document.getElementById("cfg-daily-goal").value = String(settings.dailyGoal || 3);
   document.getElementById("cfg-sheets-url").value = settings.sheetsUrl || "";
   document.getElementById("cfg-allow-skip").checked = Boolean(settings.allowSkip);
 
@@ -1301,6 +1304,7 @@ document.getElementById("cfg-logo-file").addEventListener("change", e => {
 document.getElementById("form-settings").addEventListener("submit", e => {
   e.preventDefault();
   settings.companyName = document.getElementById("cfg-company").value.trim() || "Pausas Activas SST";
+  settings.dailyGoal = Number(document.getElementById("cfg-daily-goal").value) || 3;
   settings.sheetsUrl = document.getElementById("cfg-sheets-url").value.trim();
   settings.allowSkip = document.getElementById("cfg-allow-skip").checked;
   saveJSON(STORAGE_KEYS.SETTINGS, settings);
