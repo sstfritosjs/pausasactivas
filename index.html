@@ -1,0 +1,448 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"content="width=device-width, initial-scale=1.0" />
+  <title>Pausas Activas SST | Trabajo de Pie y Esfuerzo Físico</title>
+  <link rel="stylesheet"href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon"id="brand-logo-wrap"aria-hidden="true">SST</div>
+      <div>
+        <h1 id="brand-title">Pausas Activas SST</h1>
+        <p class="subtitle">Programa cada 2 horas · Personal de pie y esfuerzo físico</p>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <!-- Navegación visible solo para Administrador -->
+      <nav id="admin-nav"class="nav-tabs hidden"role="tablist">
+        <button class="tab-btn active"data-tab="cumplimiento"role="tab">Cumplimiento</button>
+        <button class="tab-btn"data-tab="asistencia"role="tab">Historial</button>
+        <button class="tab-btn"data-tab="personal"role="tab">Personal</button>
+        <button class="tab-btn"data-tab="rutinas"role="tab">Rutinas</button>
+        <button class="tab-btn"data-tab="config"role="tab">Configuración y QR</button>
+      </nav>
+      <button id="btn-open-admin"class="btn btn-outline-light btn-sm">Administrador</button>
+      <button id="btn-exit-admin"class="btn btn-accent btn-sm hidden">Volver a Pantalla Principal</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ========================================== -->
+    <!-- PANTALLA PRINCIPAL (COLABORADORES / KIOSCO) -->
+    <!-- ========================================== -->
+    <section id="kiosk-view">
+      <div class="grid-2">
+        <div class="card kiosk-card">
+          <div class="card-header">
+            <h2>Iniciar Pausa Activa</h2>
+            <span class="badge badge-active"id="kiosk-block-badge">Bloque 1 de 4</span>
+          </div>
+          <p class="muted">Ingresa tu <strong>número de cédula</strong>para iniciar tu pausa activa de 5 minutos. Al terminar quedará registrada automáticamente.
+          </p>
+
+          <form id="form-cedula-start"class="kiosk-form">
+            <div class="form-group">
+              <label for="cedula-input">Número de Cédula / Documento</label>
+              <input
+                type="text"id="cedula-input"inputmode="numeric"placeholder="Ej: 10203040"autocomplete="off"required
+              />
+            </div>
+            <div id="cedula-preview"class="cedula-preview hidden"></div>
+            <button type="submit"class="btn btn-accent btn-lg">▶ Empezar Pausa Activa</button>
+          </form>
+
+          <div class="kiosk-footer-row">
+            <label class="toggle-label">
+              <input type="checkbox"id="chk-sound"checked />Alerta sonora (inicio y fin)
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox"id="chk-voice"checked />Guía por voz en español
+            </label>
+          </div>
+        </div>
+
+        <div class="card timer-card">
+          <div class="card-header">
+            <h2>Ciclo cada 2 Horas</h2>
+            <span id="timer-status-badge"class="badge badge-idle">En pausa</span>
+          </div>
+          <div class="timer-display"id="countdown-display">02:00:00</div>
+          <p class="timer-meta">Siguiente rutina: <strong id="next-routine-name">Bloque 1: Descarga Lumbar y Piernas</strong>
+          </p>
+          <div class="timer-controls">
+            <button id="btn-start-timer"class="btn btn-primary btn-sm">Iniciar ciclo (2h)</button>
+            <button id="btn-pause-timer"class="btn btn-secondary btn-sm"disabled>Pausar</button>
+            <button id="btn-reset-timer"class="btn btn-outline btn-sm">Reiniciar</button>
+          </div>
+          <div class="info-banner"style="margin-top:1rem;">
+            <strong>Enfoque SST:</strong>Cada pausa dura mínimo 5 minutos y rota automáticamente por 4 bloques diseñados para trabajo de pie y esfuerzo físico.
+          </div>
+
+          <div class="sst-tip-box"id="sst-tip-box">
+            <div class="sst-tip-header">
+              <span>Consejo SST para tu turno</span>
+              <button type="button"id="btn-next-tip"class="btn-link">Otro consejo ↻</button>
+            </div>
+            <p id="sst-tip-text">Toma un vaso de agua al terminar tu pausa activa para mantener tus músculos hidratados y evitar calambres.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPRODUCTOR DE PAUSA ACTIVA GUIADA -->
+      <div id="guided-player"class="card player-card hidden">
+        <div class="player-header">
+          <div>
+            <span class="badge badge-active">PAUSA ACTIVA EN CURSO</span>
+            <h2 id="player-routine-title">Bloque 1</h2>
+            <p class="muted"id="player-participant-label"style="margin:0.2rem 0 0;"></p>
+          </div>
+          <button id="btn-close-player"class="btn btn-outline btn-sm">Cancelar / Cerrar</button>
+        </div>
+
+        <div class="player-body">
+          <div class="exercise-visual"id="player-visual"></div>
+          <div class="exercise-info">
+            <div class="exercise-step-label"id="player-step-label">Ejercicio 1 de 4</div>
+            <h3 id="player-exercise-name">Nombre del ejercicio</h3>
+            <p class="exercise-desc"id="player-exercise-desc">Descripción detallada...</p>
+            <div class="ergo-cards">
+              <div class="ergo-box ergo-moving">
+                <span class="ergo-title">Qué estás moviendo</span>
+                <p id="player-exercise-moving">-</p>
+              </div>
+              <div class="ergo-box ergo-prevents">
+                <span class="ergo-title">Lesiones que evita</span>
+                <p id="player-exercise-prevents">-</p>
+              </div>
+              <div class="ergo-box ergo-breath">
+                <span class="ergo-title">Respiración y cuidado</span>
+                <p id="player-exercise-breath">Inhala por la nariz y exhala lento por la boca. Sin rebotes; si sientes dolor agudo o mareo, detente y avisa a SST.</p>
+              </div>
+            </div>
+            <div class="exercise-timer-row">
+              <div>
+                <div class="exercise-countdown"id="player-ex-timer">01:15</div>
+                <div class="total-remaining-label">Tiempo total restante: <strong id="player-total-timer">05:05</strong></div>
+              </div>
+              <div class="player-controls">
+                <button id="btn-ex-prev"class="btn btn-outline btn-sm">◀ Anterior</button>
+                <button id="btn-ex-toggle"class="btn btn-primary btn-sm">Pausar</button>
+                <button id="btn-ex-next"class="btn btn-outline btn-sm">Siguiente ▶</button>
+              </div>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill"id="player-progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- PANEL DE ADMINISTRADOR -->
+    <!-- ========================================== -->
+    <section id="admin-view"class="hidden">
+      <!-- TAB ADMIN 1: CUMPLIMIENTO (QUIÉNES SÍ / QUIÉNES NO) -->
+      <div id="tab-cumplimiento"class="tab-panel active">
+        <div class="stats-grid stats-4">
+          <div class="stat-box">
+            <span class="stat-value"id="stat-staff-count">0</span>
+            <span class="stat-label">Total personal</span>
+          </div>
+          <div class="stat-box stat-ok">
+            <span class="stat-value"id="stat-yes-count">0</span>
+            <span class="stat-label">Sí hicieron</span>
+          </div>
+          <div class="stat-box stat-pending">
+            <span class="stat-value"id="stat-no-count">0</span>
+            <span class="stat-label">No han hecho</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value"id="stat-compliance-pct">0%</span>
+            <span class="stat-label">% Cumplimiento</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value"id="stat-today-attendance">0</span>
+            <span class="stat-label">Total pausas</span>
+          </div>
+          <div class="stat-box stat-alert-box">
+            <span class="stat-value"id="stat-pain-count">0</span>
+            <span class="stat-label">Alertas molestia</span>
+          </div>
+        </div>
+
+        <div class="card"style="margin-bottom:1.25rem;">
+          <div class="card-header">
+            <h2>Cumplimiento por Área</h2>
+            <button id="btn-export-excel-full"class="btn btn-primary btn-sm">Descargar Reporte Completo Excel (.xlsx)</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Área</th>
+                  <th>Total Personal</th>
+                  <th>Sí cumplieron</th>
+                  <th>Pendientes</th>
+                  <th>% Cumplimiento</th>
+                  <th>Molestias</th>
+                </tr>
+              </thead>
+              <tbody id="area-summary-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Control de Cumplimiento por Colaborador</h2>
+            <div class="header-actions">
+              <button id="btn-export-compliance"class="btn btn-accent btn-sm">Exportar Excel (.xlsx)</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="comp-date">Fecha a consultar</label>
+              <input type="date"id="comp-date" />
+            </div>
+            <div class="form-group">
+              <label for="comp-status-filter">Estado</label>
+              <select id="comp-status-filter">
+                <option value="all">Todos</option>
+                <option value="yes">Solo quienes SÍ hicieron</option>
+                <option value="no">Solo quienes NO han hecho</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="comp-search">Buscar</label>
+              <input type="text"id="comp-search"placeholder="Cédula, nombre o área..." />
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Cédula</th>
+                  <th>Nombre</th>
+                  <th>Área</th>
+                  <th>Pausas hechas</th>
+                  <th>Última pausa</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="compliance-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB ADMIN 2: HISTORIAL DE ASISTENCIA -->
+      <div id="tab-asistencia"class="tab-panel">
+        <div class="card">
+          <div class="card-header">
+            <h2>Historial Detallado de Pausas Realizadas</h2>
+            <div class="header-actions">
+              <button id="btn-export-attendance"class="btn btn-accent btn-sm">Exportar Historial Excel (.xlsx)</button>
+              <button id="btn-clear-history"class="btn btn-danger-outline btn-sm">Limpiar historial</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="filter-date">Filtrar por fecha</label>
+              <input type="date"id="filter-date" />
+            </div>
+            <div class="form-group">
+              <label for="filter-area">Filtrar por área</label>
+              <select id="filter-area">
+                <option value="">Todas las áreas</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Fecha y Hora</th>
+                  <th>Cédula</th>
+                  <th>Nombre</th>
+                  <th>Área</th>
+                  <th>Rutina</th>
+                  <th>Bienestar</th>
+                </tr>
+              </thead>
+              <tbody id="attendance-history-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB ADMIN 3: PERSONAL -->
+      <div id="tab-personal"class="tab-panel">
+        <div class="grid-2">
+          <div class="card">
+            <h2>Subir Personal Masivamente (Excel)</h2>
+            <p class="muted">Sube un archivo <strong>Excel (.xlsx / .xls)</strong>o CSV con las columnas: <strong>Documento, Nombre, Area</strong>.
+            </p>
+            <div class="upload-box">
+              <input type="file"id="csv-file-input"accept=".xlsx,.xls,.csv" />
+              <div class="upload-actions">
+                <button id="btn-download-template"class="btn btn-outline btn-sm">Descargar plantilla Excel (.xlsx)</button>
+              </div>
+            </div>
+            <div id="upload-feedback"class="feedback hidden"></div>
+
+            <hr class="divider" />
+
+            <h3>Agregar Colaborador Manualmente</h3>
+            <form id="form-add-staff"class="stack-form">
+              <div class="form-group">
+                <label for="staff-id">Número de Cédula</label>
+                <input type="text"id="staff-id"required placeholder="Ej: 10203040" />
+              </div>
+              <div class="form-group">
+                <label for="staff-name">Nombre completo</label>
+                <input type="text"id="staff-name"required placeholder="Ej: Carlos Pérez" />
+              </div>
+              <div class="form-group">
+                <label for="staff-area">Área / Cargo</label>
+                <input type="text"id="staff-area"required placeholder="Ej: Bodega / Producción" />
+              </div>
+              <button type="submit"class="btn btn-primary">Agregar Colaborador</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2>Listado de Personal (<span id="staff-total-badge">0</span>)</h2>
+              <button id="btn-export-staff"class="btn btn-outline btn-sm">Exportar Excel (.xlsx)</button>
+            </div>
+            <div class="form-group">
+              <input type="text"id="staff-search"placeholder="Filtrar personal..." />
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Cédula</th>
+                    <th>Nombre</th>
+                    <th>Área</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="staff-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB ADMIN 4: RUTINAS -->
+      <div id="tab-rutinas"class="tab-panel">
+        <div class="section-header">
+          <h2>Catálogo de Rutinas (4 Bloques · 5+ min cada uno)</h2>
+        </div>
+        <div id="routines-grid"class="routines-grid"></div>
+      </div>
+
+      <!-- TAB ADMIN 5: CONFIGURACIÓN, GOOGLE SHEETS, QR Y RESPALDO -->
+      <div id="tab-config"class="tab-panel">
+        <div class="grid-2">
+          <div class="card">
+            <h2>Empresa y Reglas de Pausa</h2>
+            <form id="form-settings"class="stack-form">
+              <div class="form-group">
+                <label for="cfg-company">Nombre de la empresa</label>
+                <input type="text"id="cfg-company"placeholder="Ej: Logística Industrial S.A.S." />
+              </div>
+              <div class="form-group">
+                <label for="cfg-logo-file">Logo de la empresa (imagen opcional)</label>
+                <input type="file"id="cfg-logo-file"accept="image/*" />
+              </div>
+              <div class="form-group">
+                <label for="cfg-sheets-url">URL de Google Sheets (Apps Script Webhook - opcional)</label>
+                <input type="text"id="cfg-sheets-url"placeholder="https://script.google.com/macros/s/.../exec" />
+                <small class="muted">Si la configuras, cada pausa completada se enviará automáticamente a tu hoja de Google Sheets.</small>
+              </div>
+              <label class="toggle-label"style="margin:0.4rem 0 0.8rem;">
+                <input type="checkbox"id="cfg-allow-skip" />Permitir saltar ejercicios con botón "Siguiente" (desactivado por defecto para evitar trampas)
+              </label>
+              <button type="submit"class="btn btn-primary">Guardar Configuración</button>
+            </form>
+
+            <hr class="divider" />
+
+            <h3>Copia de Seguridad (Respaldo Local)</h3>
+            <p class="muted">Descarga o restaura todo el personal, historial y configuración en un archivo <code>.json</code>.</p>
+            <div class="header-actions">
+              <button id="btn-backup-export"class="btn btn-outline btn-sm">Descargar respaldo (.json)</button>
+              <label class="btn btn-outline btn-sm"style="cursor:pointer;">Restaurar respaldo
+                <input type="file"id="btn-backup-import"accept=".json"class="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Código QR para Planta / Bodega</h2>
+            <p class="muted">Pega el enlace de tu página en GitHub Pages para generar el código QR imprimible y pegarlo en las áreas de trabajo.</p>
+            <div class="form-group">
+              <label for="cfg-qr-url">Enlace de la página (GitHub Pages)</label>
+              <input type="text"id="cfg-qr-url"placeholder="https://tu-usuario.github.io/pausas-activas/" />
+            </div>
+            <div class="header-actions"style="margin-bottom:1rem;">
+              <button id="btn-gen-qr"class="btn btn-primary btn-sm">Generar QR</button>
+              <button id="btn-print-qr"class="btn btn-accent btn-sm">Imprimir Cartel QR</button>
+            </div>
+            <div id="qr-preview-box"class="qr-box">
+              <img id="qr-image"alt="Código QR Pausas Activas" />
+              <p id="qr-caption"class="muted"style="margin:0.5rem 0 0;font-size:0.82rem;"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL DE BIENESTAR AL TERMINAR LA PAUSA -->
+  <div id="feeling-modal"class="modal-overlay hidden">
+    <div class="modal-card"style="text-align:center;">
+      <h2>¡Pausa Activa Completada!</h2>
+      <p class="muted"id="feeling-worker-name">¿Cómo te sientes hoy después de tu pausa?</p>
+      <div class="feeling-buttons">
+        <button type="button"class="btn-feeling feeling-ok"data-feeling="Bien">Me siento bien</button>
+        <button type="button"class="btn-feeling feeling-tired"data-feeling="Cansado">Algo cansado</button>
+        <button type="button"class="btn-feeling feeling-pain"data-feeling="Con molestia física">Con molestia física</button>
+      </div>
+      <p class="muted"style="font-size:0.78rem;margin-top:0.75rem;">Selecciona una opción para guardar tu registro de asistencia.</p>
+    </div>
+  </div>
+
+  <!-- MODAL DE ACCESO ADMINISTRADOR -->
+  <div id="admin-modal"class="modal-overlay hidden">
+    <div class="modal-card">
+      <h2>Acceso Administrador</h2>
+      <p class="muted">Ingresa la clave de administrador para ver el cumplimiento, historial y cargar personal.</p>
+      <form id="form-admin-login">
+        <div class="form-group">
+          <label for="admin-pass-input">Clave de acceso</label>
+          <input type="password"id="admin-pass-input"placeholder="Clave por defecto: admin123"required />
+        </div>
+        <div id="admin-login-error"class="error-text hidden">Clave incorrecta. Intenta nuevamente.</div>
+        <div class="modal-actions">
+          <button type="button"id="btn-cancel-admin"class="btn btn-outline">Cancelar</button>
+          <button type="submit"class="btn btn-primary">Ingresar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast"class="toast hidden"></div>
+
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+  <script src="illustrations.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
