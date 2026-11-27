@@ -703,6 +703,11 @@ document.getElementById("btn-sync-kiosk").addEventListener("click", async () => 
 // ==========================================================
 // REPRODUCTOR DE PAUSA GUIADA
 // ==========================================================
+function ocultarReproductor() {
+  document.getElementById("guided-player").classList.add("hidden");
+  document.body.classList.remove("en-pausa");
+}
+
 function startGuidedBreak(opciones) {
   const op = opciones || {};
   const ri = typeof op.routineIndex === "number" ? op.routineIndex : routineIndexForNow();
@@ -734,8 +739,14 @@ function startGuidedBreak(opciones) {
     }
   }
 
+  // Modo concentración: se ocultan encabezado y tarjetas para que el
+  // ejercicio y el cronómetro quepan juntos en una sola pantalla.
+  document.body.classList.add("en-pausa");
+  const detalle = document.getElementById("ergo-details");
+  if (detalle) detalle.open = window.innerWidth >= 900;
+
   loadExercise(0);
-  document.getElementById("guided-player").scrollIntoView({ behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function calcTotalRemaining() {
@@ -811,7 +822,7 @@ function finishGuidedBreak() {
   playEndChime();
 
   if (groupMode) {
-    document.getElementById("guided-player").classList.add("hidden");
+    ocultarReproductor();
     activeRoutine = null;
     speakSpanish("Pausa grupal terminada. El líder debe marcar quiénes participaron.");
     abrirListaGrupal();
@@ -843,7 +854,7 @@ function finishGuidedBreak() {
     speakSpanish(`Excelente ${activeParticipant.name}. Selecciona cómo te sientes hoy para guardar tu registro.`);
   }
 
-  document.getElementById("guided-player").classList.add("hidden");
+  ocultarReproductor();
   activeRoutine = null;
 }
 
@@ -936,7 +947,7 @@ document.getElementById("btn-close-player").addEventListener("click", () => {
   clearInterval(exInterval);
   activeParticipant = null;
   activeRoutine = null;
-  document.getElementById("guided-player").classList.add("hidden");
+  ocultarReproductor();
   if (groupMode) {
     document.getElementById("group-setup").classList.remove("hidden");
     document.getElementById("group-checklist").classList.add("hidden");
@@ -2374,7 +2385,7 @@ function enterGroupMode() {
   fillGroupSelectors();
   document.getElementById("kiosk-view").classList.add("hidden");
   document.getElementById("worker-view").classList.add("hidden");
-  document.getElementById("guided-player").classList.add("hidden");
+  ocultarReproductor();
   document.getElementById("group-view").classList.remove("hidden");
   document.getElementById("group-setup").classList.remove("hidden");
   document.getElementById("group-checklist").classList.add("hidden");
@@ -2389,7 +2400,7 @@ function exitGroupMode() {
   groupSelected.clear();
   groupSegments.clear();
   groupSignatures.clear();
-  document.getElementById("guided-player").classList.add("hidden");
+  ocultarReproductor();
   document.getElementById("group-view").classList.add("hidden");
   document.getElementById("kiosk-view").classList.remove("hidden");
 }

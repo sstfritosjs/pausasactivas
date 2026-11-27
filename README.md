@@ -1,4 +1,4 @@
-# Pausas Activas SST · v8
+# Pausas Activas SST · v9
 
 App web para GitHub Pages con **base de datos compartida en Google Sheets**, **modo grupal con firma de cada asistente**, **dos turnos de 12 horas**, historial propio para cada trabajador y vigilancia de molestias osteomusculares. Funciona **sin señal** y se instala en el celular como aplicación.
 
@@ -16,6 +16,21 @@ Sube la carpeta `img/` completa (11 archivos .jpg) a la raíz del repositorio, a
 ---
 
 ---
+
+---
+
+---
+
+## La pausa cabe en una sola pantalla
+
+Antes la foto quedaba arriba y el cronómetro dos pantallas más abajo: quien está de pie haciendo el ejercicio no puede andar desplazando el celular. El reproductor se rediseñó para que **lo esencial se vea junto, sin desplazar**:
+
+- **Foto y cronómetro lado a lado.** La foto a la izquierda, el conteo grande a la derecha con el nombre del ejercicio debajo.
+- **Botón Pausar a todo el ancho**, debajo de las dos, fácil de tocar sin apuntar.
+- **Modo concentración:** mientras corre la pausa se ocultan el encabezado y las tarjetas de horario. La pantalla es solo para el ejercicio, y todo vuelve al terminar.
+- **Detalle ergonómico plegado.** "Qué estás moviendo · lesiones que evita · cómo respirar" queda en un desplegable: se consulta con un toque, pero no estorba mientras se hace el ejercicio. En pantallas grandes se abre solo.
+
+Medido en las pruebas: en un celular de 360 × 740 el reproductor ocupa 594 px, así que foto, cronómetro y botón quedan visibles a la vez. Antes había que desplazar dos veces.
 
 ---
 
@@ -194,7 +209,7 @@ img/   (11 fotos · OBLIGATORIA)      README.md
 
 **Settings → Pages → Deploy from a branch → `main` / `root`.**
 
-> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v8`.
+> **Al publicar cambios:** sube el número `?v=` en `index.html` **y** el `CACHE_VERSION` en `sw.js`. Si no, los celulares seguirán usando la versión guardada. Esta versión ya va en `v9`.
 
 ---
 

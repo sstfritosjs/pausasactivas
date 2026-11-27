@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="icon" href="icon-192.png" />
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
 </head>
 <body>
   <div id="sync-bar" class="sync-bar hidden" role="status" aria-live="polite">
@@ -109,54 +109,60 @@
 
     <!-- REPRODUCTOR DE PAUSA ACTIVA GUIADA -->
     <div id="guided-player" class="card player-card hidden">
-        <div class="player-header">
-          <div>
-            <span class="badge badge-active">PAUSA ACTIVA EN CURSO</span>
-            <h2 id="player-routine-title">Bloque 1</h2>
-            <p class="muted" id="player-participant-label" style="margin:0.2rem 0 0;"></p>
-          </div>
-          <button id="btn-close-player" class="btn btn-outline btn-sm">Cancelar / Cerrar</button>
+      <div class="player-header">
+        <div class="player-head-text">
+          <span class="badge badge-active">PAUSA ACTIVA EN CURSO</span>
+          <h2 id="player-routine-title">Bloque 1</h2>
+          <p class="muted" id="player-participant-label"></p>
+        </div>
+        <button id="btn-close-player" class="btn btn-outline btn-sm">Cerrar</button>
+      </div>
+
+      <div id="player-medical-banner" class="medical-banner hidden"></div>
+
+      <div class="player-body">
+        <div class="player-progress-row">
+          <span class="exercise-step-label" id="player-step-label">Ejercicio 1 de 6</span>
+          <div class="progress-track"><div class="progress-fill" id="player-progress-fill"></div></div>
         </div>
 
-        <div id="player-medical-banner" class="medical-banner hidden"></div>
-
-        <div class="player-body">
+        <div class="player-stage">
           <div class="exercise-visual" id="player-visual"></div>
-          <div class="exercise-info">
-            <div class="exercise-step-label" id="player-step-label">Ejercicio 1 de 6</div>
+          <div class="stage-side">
+            <div class="exercise-countdown" id="player-ex-timer">00:50</div>
+            <div class="total-remaining-label">Restante: <strong id="player-total-timer">05:00</strong></div>
             <h3 id="player-exercise-name">Nombre del ejercicio</h3>
-            <p class="exercise-desc" id="player-exercise-desc">Descripción detallada...</p>
-            <div class="ergo-cards">
-              <div class="ergo-box ergo-moving">
-                <span class="ergo-title">Qué estás moviendo</span>
-                <p id="player-exercise-moving">-</p>
-              </div>
-              <div class="ergo-box ergo-prevents">
-                <span class="ergo-title">Lesiones que evita</span>
-                <p id="player-exercise-prevents">-</p>
-              </div>
-              <div class="ergo-box ergo-breath">
-                <span class="ergo-title">Respiración y cuidado</span>
-                <p id="player-exercise-breath">-</p>
-              </div>
-            </div>
-            <div class="exercise-timer-row">
-              <div>
-                <div class="exercise-countdown" id="player-ex-timer">00:50</div>
-                <div class="total-remaining-label">Tiempo total restante: <strong id="player-total-timer">05:00</strong></div>
-              </div>
-              <div class="player-controls">
-                <button id="btn-ex-prev" class="btn btn-outline btn-sm">◀ Anterior</button>
-                <button id="btn-ex-toggle" class="btn btn-primary btn-sm">Pausar</button>
-                <button id="btn-ex-next" class="btn btn-outline btn-sm">Siguiente ▶</button>
-                <button id="btn-ex-skip-medical" class="btn btn-danger-outline btn-sm hidden">Omitir por restricción médica</button>
-              </div>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" id="player-progress-fill"></div>
-            </div>
           </div>
         </div>
+
+        <div class="player-controls">
+          <button id="btn-ex-toggle" class="btn btn-primary">Pausar</button>
+          <button id="btn-ex-prev" class="btn btn-outline btn-sm">◀ Anterior</button>
+          <button id="btn-ex-next" class="btn btn-outline btn-sm">Siguiente ▶</button>
+          <button id="btn-ex-skip-medical" class="btn btn-danger-outline btn-sm hidden">Omitir por restricción médica</button>
+        </div>
+
+        <p class="exercise-desc" id="player-exercise-desc">Descripción detallada...</p>
+
+        <details class="ergo-details" id="ergo-details">
+          <summary>Qué estás moviendo · lesiones que evita · cómo respirar</summary>
+          <div class="ergo-cards">
+            <div class="ergo-box ergo-moving">
+              <span class="ergo-title">Qué estás moviendo</span>
+              <p id="player-exercise-moving">-</p>
+            </div>
+            <div class="ergo-box ergo-prevents">
+              <span class="ergo-title">Lesiones que evita</span>
+              <p id="player-exercise-prevents">-</p>
+            </div>
+            <div class="ergo-box ergo-breath">
+              <span class="ergo-title">Respiración y cuidado</span>
+              <p id="player-exercise-breath">-</p>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
       </div>
 
     <!-- ========================================== -->
@@ -785,8 +791,8 @@
   </div>
 
   <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-  <script src="illustrations.js?v=8"></script>
-  <script src="routines.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="illustrations.js?v=9"></script>
+  <script src="routines.js?v=9"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

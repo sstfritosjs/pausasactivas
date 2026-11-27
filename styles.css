@@ -1952,3 +1952,167 @@ select {
   color: #9a3412;
   line-height: 1.4;
 }
+
+/* ==========================================
+   v9 · REPRODUCTOR EN UNA SOLA PANTALLA
+   El ejercicio y el cronómetro deben verse juntos:
+   quien está de pie no puede andar desplazando la pantalla.
+   ========================================== */
+.player-card { margin-top: 1rem; }
+
+.player-header { align-items: flex-start; margin-bottom: 0.6rem; }
+.player-head-text { min-width: 0; }
+
+.player-head-text h2 {
+  font-size: 1rem;
+  margin: 0.3rem 0 0.1rem;
+  line-height: 1.2;
+}
+
+.player-head-text .muted {
+  margin: 0;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-body { display: block; }
+
+.player-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+}
+
+.player-progress-row .exercise-step-label {
+  white-space: nowrap;
+  font-size: 0.72rem;
+}
+
+.player-progress-row .progress-track { flex: 1; height: 6px; }
+
+.player-stage {
+  display: grid;
+  grid-template-columns: 45% 1fr;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.player-stage .exercise-visual,
+.player-stage .exercise-visual.has-photo {
+  height: 245px;
+  max-width: none;
+  margin: 0;
+}
+
+.stage-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.stage-side .exercise-countdown {
+  font-size: 2.9rem;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.stage-side .total-remaining-label { margin: 0 0 0.15rem; font-size: 0.75rem; }
+
+.stage-side h3 {
+  margin: 0.15rem 0 0.4rem;
+  font-size: 0.95rem;
+  line-height: 1.22;
+}
+
+.stage-side .player-controls {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: auto;
+}
+
+.stage-side .player-controls .btn { width: 100%; flex: none; }
+.stage-side .player-controls .btn-primary { min-height: 46px; font-size: 1rem; }
+
+.exercise-desc { margin: 0.7rem 0 0.6rem; font-size: 0.9rem; }
+
+/* Detalle ergonómico plegado: se consulta, no estorba durante el ejercicio */
+.ergo-details {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-subtle);
+}
+
+.ergo-details summary {
+  cursor: pointer;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.79rem;
+  font-weight: 700;
+  color: var(--primary);
+  list-style: none;
+}
+
+.ergo-details summary::-webkit-details-marker { display: none; }
+.ergo-details summary::before { content: "▸  "; }
+.ergo-details[open] summary::before { content: "▾  "; }
+.ergo-details .ergo-cards { padding: 0 0.7rem 0.7rem; margin: 0; }
+
+/* Modo concentración */
+body.en-pausa .topbar,
+body.en-pausa #kiosk-view .grid-2,
+body.en-pausa #group-setup { display: none !important; }
+
+body.en-pausa .container { margin-top: 0.6rem; }
+body.en-pausa .player-card { margin-top: 0; }
+
+@media (min-width: 900px) {
+  .player-stage { grid-template-columns: 300px 1fr; }
+  .player-stage .exercise-visual,
+  .player-stage .exercise-visual.has-photo { height: 330px; }
+  .stage-side .exercise-countdown { font-size: 3.4rem; }
+  .stage-side h3 { font-size: 1.15rem; }
+  .stage-side .player-controls { flex-direction: row; flex-wrap: wrap; }
+  .stage-side .player-controls .btn { width: auto; flex: 1; min-width: 120px; }
+  .player-head-text h2 { font-size: 1.15rem; }
+}
+
+@media (max-width: 360px) {
+  .player-stage { grid-template-columns: 43% 1fr; gap: 0.55rem; }
+  .player-stage .exercise-visual,
+  .player-stage .exercise-visual.has-photo { height: 215px; }
+  .stage-side .exercise-countdown { font-size: 2.4rem; }
+  .stage-side h3 { font-size: 0.88rem; }
+}
+
+/* Botón principal a todo el ancho, debajo de la foto y el cronómetro */
+.player-body > .player-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  width: auto;
+}
+
+.player-body > .player-controls #btn-ex-toggle {
+  flex: 1 1 100%;
+  min-height: 48px;
+  font-size: 1.02rem;
+}
+
+.player-body > .player-controls .btn-sm { flex: 1 1 auto; }
+
+.player-stage .exercise-visual,
+.player-stage .exercise-visual.has-photo { height: 228px; }
+
+.stage-side { justify-content: flex-start; }
+
+@media (min-width: 900px) {
+  .player-stage .exercise-visual,
+  .player-stage .exercise-visual.has-photo { height: 320px; }
+  .player-body > .player-controls #btn-ex-toggle { flex: 0 1 220px; }
+}
